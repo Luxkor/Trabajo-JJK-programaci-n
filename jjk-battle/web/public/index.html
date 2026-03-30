@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JUJUTSU KAISEN — BATTLE SYSTEM</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/compat.css">
 </head>
 <body>
 
@@ -81,7 +82,16 @@
     <h2 class="select-title">ELIGE TU COMBATIENTE</h2>
     <div class="select-status" id="select-status">Esperando selecciones...</div>
   </div>
-  <div class="characters-grid" id="characters-grid"></div>
+  <div class="characters-section">
+    <div>
+      <div class="section-title">🔯 HECHICEROS</div>
+      <div class="characters-grid" id="hechiceros-grid"></div>
+    </div>
+    <div>
+      <div class="section-title">👹 MALDICIONES</div>
+      <div class="characters-grid" id="maldiciones-grid"></div>
+    </div>
+  </div>
   <div class="select-footer">
     <div class="select-preview" id="select-preview">
       <div class="preview-placeholder">Selecciona un personaje para ver sus habilidades</div>
@@ -254,7 +264,7 @@
 
 <div id="toast" class="toast hidden"></div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="js/client.js"></script>
+<script src="/socket.io/socket.io.js" onerror="console.log('Socket.io no disponible - modo offline')"></script>
+<script src="./js/client.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@ const CHARACTERS = [
       {nombre:'Destello Negro',               desc:'Impacto físico garantizado',           danio:100, coste:5,   fisico:true,  dominio:false},
       {nombre:'EXPANSIÓN: VACÍO INFINITO',   desc:'Inmoviliza al rival 2 turnos',         danio:60,  coste:15,  fisico:false, dominio:true,  efectoDominio:'vacio-infinito', efecto:'inmovilizar2'}]},
 
-  { id:1,  nombre:'Sukuna',               tipo:'maldicion', hp:700,  energia:950,  emoji:'呪', color:'#cc2200', gradiente:'linear-gradient(135deg,#2a0000,#cc2200)', puedeEspeciales:true,  puedeCurarse:true,  tieneHerramienta:false, prioridadDominio:true,
+  { id:1,  nombre:'Sukuna',               tipo:'hechicero', hp:700,  energia:950,  emoji:'呪', color:'#cc2200', gradiente:'linear-gradient(135deg,#2a0000,#cc2200)', puedeEspeciales:true,  puedeCurarse:true,  tieneHerramienta:false, prioridadDominio:true,
     habilidades:[
       {nombre:'Desmantelar',                  desc:'Cortes malditos',                      danio:60,  coste:20,  fisico:false, dominio:false},
       {nombre:'Cleave',                       desc:'Cortes adaptados a la resistencia',    danio:75,  coste:35,  fisico:false, dominio:false},
@@ -193,7 +193,7 @@ const CHARACTERS = [
       {nombre:'JACOB: ANIQUILACIÓN',          desc:'Daño doble a Maldiciones',             danio:110, coste:85,  fisico:true,  dominio:false, efecto:'jacob'},
       {nombre:'ESCALERA DE JACOB',            desc:'Técnica máxima: atraviesa toda defensa',danio:180,coste:130, fisico:true,  dominio:false}]},
 
-  { id:22, nombre:'Kenjaku',              tipo:'maldicion', hp:580,  energia:550,  emoji:'脳', color:'#cc44ff', gradiente:'linear-gradient(135deg,#110022,#cc44ff)', puedeEspeciales:true,  puedeCurarse:false, tieneHerramienta:false, prioridadDominio:true,
+  { id:22, nombre:'Kenjaku',              tipo:'hechicero', hp:580,  energia:550,  emoji:'脳', color:'#cc44ff', gradiente:'linear-gradient(135deg,#110022,#cc44ff)', puedeEspeciales:true,  puedeCurarse:false, tieneHerramienta:false, prioridadDominio:true,
     habilidades:[
       {nombre:'Manipulación de Maldiciones',  desc:'Horda de maldiciones robadas',         danio:65,  coste:25,  fisico:false, dominio:false},
       {nombre:'Técnica Robada: Ultravioleta', desc:'Rayo de energía copiado',              danio:90,  coste:45,  fisico:false, dominio:false},

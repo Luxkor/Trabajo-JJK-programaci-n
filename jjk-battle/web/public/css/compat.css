@@ -1,0 +1,73 @@
+/* ══════════════════════════════════════════════════════
+   COMPATIBILIDAD Y FIXES VISUALES
+   ══════════════════════════════════════════════════════ */
+
+/* Asegurar que los estilos base funcionen */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Fix para fuentes fallback */
+body {
+  font-feature-settings: "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Asegurar que los screens se vean correctamente */
+.screen {
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  max-width: 100vw;
+}
+
+/* Mejorar visibilidad de contenido en mobile */
+@media (max-width: 768px) {
+  html, body {
+    font-size: 14px;
+  }
+  
+  .main-actions {
+    gap: 1.5rem !important;
+  }
+  
+  .btn-jugar {
+    width: 180px;
+    height: 52px;
+  }
+  
+  .main-logo-en {
+    font-size: clamp(1.4rem, 4vw, 2.5rem) !important;
+  }
+}
+
+/* Fix para scroll en mobile */
+body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Asegurar que toast se vea correctamente */
+.toast {
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+/* Fix para escalado en zoom */
+@media (min-zoom: 1.1) {
+  html, body {
+    overflow: hidden;
+    max-height: 100vh;
+  }
+}

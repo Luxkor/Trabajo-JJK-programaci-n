@@ -4,7 +4,94 @@
    Flujo: screen-main → screen-lobby → screen-select → screen-battle
    ══════════════════════════════════════════════════ */
 
-const socket = io();
+// ═══════════════════════════════════════════════════════════════
+// MODO HÍBRIDO: Socket.io (con servidor) o localStorage (sin servidor)
+// ═══════════════════════════════════════════════════════════════
+
+let socket;
+let MODO_OFFLINE = false;
+let eventHandlers = {};
+
+// Helper para disparar eventos (funciona en ambos modos)
+function triggerEvent(event, data) {
+  if (eventHandlers[event]) {
+    eventHandlers[event].forEach(h => {
+      setTimeout(() => h(data), 0);
+    });
+  }
+}
+
+// Modo Socket.io - con servidor
+if (typeof io !== 'undefined') {
+  socket = io({
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 5,
+    transports: ['websocket', 'polling']
+  });
+  console.log('Socket.io conectando...');
+  
+  socket.on('connect', () => {
+    console.log('✅ Socket.io conectado al servidor');
+    MODO_OFFLINE = false;
+  });
+  
+  socket.on('connect_error', (error) => {
+    console.error('❌ Error de conexión Socket.io:', error);
+  });
+  
+  socket.on('disconnect', (reason) => {
+    console.warn('⚠️ Socket.io desconectado:', reason);
+  });
+} else {
+  // Modo offline - localStorage
+  MODO_OFFLINE = true;
+  console.log('🔌 Modo OFFLINE activado - usando almacenamiento local');
+  
+  // Crear socket simulado con métodos que funcionen
+  socket = {
+    on: function(event, handler) {
+      if (!eventHandlers[event]) eventHandlers[event] = [];
+      eventHandlers[event].push(handler);
+    },
+    emit: function(event, data) {
+      // En modo offline, simulamos la respuesta del servidor
+      handleOfflineEmit(event, data);
+    },
+    off: () => {},
+    connected: false
+  };
+  
+  // Verificar cambios cada 500ms (para sincronización entre pestañas)
+  let lastCheck = {};
+  setInterval(() => {
+    const rooms = localStorage.getItem('jjk_latest_room');
+    if (rooms) {
+      const roomData = localStorage.getItem('jjk_sala_' + rooms);
+      if (roomData && roomData !== lastCheck[rooms]) {
+        lastCheck[rooms] = roomData;
+        const sala = JSON.parse(roomData);
+        // Aquí se dispararían eventos si detectamos cambios
+      }
+    }
+  }, 500);
+}
+
+// Manejar emit en modo offline
+function handleOfflineEmit(event, data) {
+  if (!MODO_OFFLINE) return;
+  
+  // Simular respuestas del servidor para eventos
+  switch(event) {
+    case 'create_room':
+      // El botón ya crea la sala, así que triggerEvent('room_created', ...)
+      break;
+    case 'join_room':
+      // El botón ya se une, triggerEvent('room_joined', ...)
+      break;
+  }
+}
 
 // ── Estado global ────────────────────────────────────
 const state = {
@@ -46,6 +133,7 @@ function currentScreen() {
 
 function showToast(msg, ms = 2500) {
   const t = document.getElementById('toast');
+  if (!t) return console.log('Toast:', msg);
   t.textContent = msg;
   t.classList.remove('hidden');
   clearTimeout(t._t);
@@ -53,37 +141,190 @@ function showToast(msg, ms = 2500) {
 }
 
 // ════════════════════════════════════════════════════
-//  MENÚ PRINCIPAL
+//  INICIALIZACIÓN DEL DOM
 // ════════════════════════════════════════════════════
-document.getElementById('btn-jugar').addEventListener('click', () => {
-  showScreen('screen-lobby');
-});
+function initializeUI() {
+  // MENÚ PRINCIPAL
+  const btnJugar = document.getElementById('btn-jugar');
+  if (btnJugar) {
+    btnJugar.addEventListener('click', () => {
+      showScreen('screen-lobby');
+    });
+  }
 
-// ════════════════════════════════════════════════════
-//  LOBBY
-// ════════════════════════════════════════════════════
-document.getElementById('btn-back-lobby').addEventListener('click', () => {
-  showScreen('screen-main');
-  document.getElementById('room-code-display').classList.add('hidden');
-  document.getElementById('lobby-error').classList.add('hidden');
-});
+  // LOBBY
+  const btnBackLobby = document.getElementById('btn-back-lobby');
+  if (btnBackLobby) {
+    btnBackLobby.addEventListener('click', () => {
+      showScreen('screen-main');
+      const roomCode = document.getElementById('room-code-display');
+      if (roomCode) roomCode.classList.add('hidden');
+      const lobbyErr = document.getElementById('lobby-error');
+      if (lobbyErr) lobbyErr.classList.add('hidden');
+    });
+  }
 
-document.getElementById('btn-create').addEventListener('click', () => {
-  const name = document.getElementById('input-name').value.trim();
-  if (!name) return showToast('Ingresa tu nombre de combatiente.');
-  socket.emit('create_room', { playerName: name });
-});
+  const btnCreate = document.getElementById('btn-create');
+  if (btnCreate) {
+    btnCreate.addEventListener('click', () => {
+      const name = document.getElementById('input-name').value.trim();
+      if (!name) return showToast('Ingresa tu nombre de combatiente.');
+      
+      if (MODO_OFFLINE) {
+        // MODO OFFLINE: crear sala localmente
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let roomCode = '';
+        for (let i = 0; i < 4; i++) {
+          roomCode += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        
+        // Guardar sala en localStorage
+        const sala = {
+          id: roomCode,
+          players: [{ name, charIdx: null }, { name: 'Esperando...', charIdx: null }],
+          phase: 'waiting'
+        };
+        localStorage.setItem('jjk_sala_' + roomCode, JSON.stringify(sala));
+        localStorage.setItem('jjk_latest_room', roomCode);
+        
+        state.roomId = roomCode;
+        state.playerIdx = 0;
+        state.playerNames[0] = name;
+        document.getElementById('room-code-text').textContent = roomCode;
+        document.getElementById('room-code-display').classList.remove('hidden');
+        showToast('Sala creada: ' + roomCode + ' — esperando rival...');
+        
+        // Monitorear si alguien se unió
+        window.checkPlayerJoined = setInterval(() => {
+          const salaData = JSON.parse(localStorage.getItem('jjk_sala_' + roomCode) || '{}');
+          if (salaData.players?.[1]?.name && salaData.players[1].name !== 'Esperando...') {
+            clearInterval(window.checkPlayerJoined);
+            state.playerNames[1] = salaData.players[1].name;
+            showToast(`¡${state.playerNames[1]} se unió! Preparando selección...`);
+            setTimeout(() => {
+              showScreen('screen-select');
+              // Cargar personajes (simplificado)
+              renderCharacterGridOffline();
+            }, 500);
+          }
+        }, 300);
+      } else {
+        socket.emit('create_room', { playerName: name });
+      }
+    });
+  }
 
-document.getElementById('btn-join').addEventListener('click', () => {
-  const name = document.getElementById('input-name').value.trim();
-  const room = document.getElementById('input-room').value.trim().toUpperCase();
-  if (!name) return showToast('Ingresa tu nombre.');
-  if (!room) return showToast('Ingresa el código de sala.');
-  socket.emit('join_room', { roomId: room, playerName: name });
-});
+  const btnJoin = document.getElementById('btn-join');
+  if (btnJoin) {
+    btnJoin.addEventListener('click', () => {
+      const name = document.getElementById('input-name').value.trim();
+      const room = document.getElementById('input-room').value.trim().toUpperCase();
+      if (!name) return showToast('Ingresa tu nombre.');
+      if (!room) return showToast('Ingresa el código de sala.');
+      
+      if (MODO_OFFLINE) {
+        // MODO OFFLINE: unirse a sala local
+        const salaData = JSON.parse(localStorage.getItem('jjk_sala_' + room) || null);
+        if (!salaData) return showToast('Sala no encontrada: ' + room);
+        
+        // Actualizar sala con el segundo jugador
+        salaData.players[1] = { name, charIdx: null };
+        salaData.phase = 'character_select';
+        localStorage.setItem('jjk_sala_' + room, JSON.stringify(salaData));
+        localStorage.setItem('jjk_latest_room', room);
+        
+        state.roomId = room;
+        state.playerIdx = 1;
+        state.playerNames = [salaData.players[0].name, name];
+        showToast('¡Unido a sala ' + room + '! Preparando selección...');
+        
+        setTimeout(() => {
+          showScreen('screen-select');
+          renderCharacterGridOffline();
+        }, 500);
+      } else {
+        socket.emit('join_room', { roomId: room, playerName: name });
+      }
+    });
+  }
 
-document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-create').click(); });
-document.getElementById('input-room').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-join').click(); });
+  const inputName = document.getElementById('input-name');
+  if (inputName) {
+    inputName.addEventListener('keydown', e => { 
+      if (e.key === 'Enter') document.getElementById('btn-create').click(); 
+    });
+  }
+
+  const inputRoom = document.getElementById('input-room');
+  if (inputRoom) {
+    inputRoom.addEventListener('keydown', e => { 
+      if (e.key === 'Enter') document.getElementById('btn-join').click(); 
+    });
+  }
+}
+
+// Ejecutar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeUI);
+} else {
+  initializeUI();
+}
+
+// Inicializar event listeners de batalla
+function initializeBattleUI() {
+  const btn1 = document.getElementById('btn-habilidades');
+  const btn2 = document.getElementById('btn-ataque');
+  const btn3 = document.getElementById('btn-guardia');
+  const btn4 = document.getElementById('btn-recargar');
+  const btn5 = document.getElementById('btn-curar');
+  const btn6 = document.getElementById('btn-back-hab');
+  
+  if (btn1) {
+    btn1.addEventListener('click', () => {
+      if (!state.isMyTurn) return;
+      document.getElementById('action-menu').classList.add('hidden');
+      showHabilidades();
+    });
+  }
+  
+  if (btn2) {
+    btn2.addEventListener('click', () => {
+      if (!state.isMyTurn) return;
+      sendAction({ type: 'basic' });
+    });
+  }
+  
+  if (btn3) {
+    btn3.addEventListener('click', () => {
+      if (!state.isMyTurn) return;
+      sendAction({ type: 'defend' });
+    });
+  }
+  
+  if (btn4) {
+    btn4.addEventListener('click', () => {
+      if (!state.isMyTurn) return;
+      sendAction({ type: 'recargar' });
+    });
+  }
+  
+  if (btn5) {
+    btn5.addEventListener('click', () => {
+      if (!state.isMyTurn) return;
+      sendAction({ type: 'curar' });
+    });
+  }
+  
+  if (btn6) {
+    btn6.addEventListener('click', () => {
+      document.getElementById('habilidades-menu').classList.add('hidden');
+      document.getElementById('action-menu').classList.remove('hidden');
+    });
+  }
+}
+
+// Llamar a initializeBattleUI después de initializeUI
+setTimeout(initializeBattleUI, 100);
 
 socket.on('room_created', ({ roomId, playerIdx }) => {
   state.roomId = roomId;
@@ -118,24 +359,63 @@ socket.on('phase_change', ({ fase, characters }) => {
   document.getElementById('select-status').textContent = 'Elige tu personaje. El rival selecciona en su pantalla.';
 });
 
+// Catálogo local de personajes (para modo offline)
+const CHARS_OFFLINE = [
+  {id:0, nombre:'Gojo Satoru', tipo:'hechicero', emoji:'∞', color:'#00c8ff', gradiente:'linear-gradient(135deg,#003c6e,#00c8ff)', habilidades:[{nombre:'Azul'},{nombre:'Rojo'},{nombre:'VACÍO PÚRPURA'},{nombre:'Destello Negro'},{nombre:'EXPANSIÓN: VACÍO INFINITO', dominio:true}]},
+  {id:1, nombre:'Sukuna', tipo:'hechicero', emoji:'呪', color:'#cc2200', gradiente:'linear-gradient(135deg,#2a0000,#cc2200)', habilidades:[{nombre:'Desmantelar'},{nombre:'Cleave'},{nombre:'FUGA'},{nombre:'Golpe Físico'},{nombre:'EXPANSIÓN: SANTUARIO MALÉVOLO', dominio:true}]},
+  {id:2, nombre:'Itadori Yuji', tipo:'hechicero', emoji:'拳', color:'#ff7700', gradiente:'linear-gradient(135deg,#3a1500,#ff7700)', habilidades:[{nombre:'Puño Divergente'},{nombre:'Destello Negro'},{nombre:'Artes Marciales'},{nombre:'Corte de Alma'},{nombre:'Rencor'}]},
+  {id:3, nombre:'Maki Zenin', tipo:'hechicero', emoji:'武', color:'#00cc66', gradiente:'linear-gradient(135deg,#003a1a,#00cc66)', habilidades:[{nombre:'Nube Itinerante'},{nombre:'Katana Almas'},{nombre:'Lanza'},{nombre:'Ataque Pesado'},{nombre:'Masacre'}]},
+  {id:4, nombre:'Toji Fushiguro', tipo:'hechicero', emoji:'剣', color:'#aaaaaa', gradiente:'linear-gradient(135deg,#1a1a1a,#aaaaaa)', habilidades:[{nombre:'Navaja Invertida'},{nombre:'Cadena'},{nombre:'Espada Alma'},{nombre:'Pistola'},{nombre:'Bendición'}]},
+  {id:5, nombre:'Yuta Okkotsu', tipo:'hechicero', emoji:'愛', color:'#ff88cc', gradiente:'linear-gradient(135deg,#2a0022,#ff88cc)', habilidades:[{nombre:'Copia: Discurso'},{nombre:'Corte con Katana'},{nombre:'Rika: Ataque Físico'},{nombre:'RAYO DE AMOR VERDADERO'},{nombre:'EXPANSIÓN: AMOR MUTUO', dominio:true}]},
+  {id:7, nombre:'Mahito', tipo:'maldicion', emoji:'魂', color:'#9933ff', gradiente:'linear-gradient(135deg,#1a0033,#9933ff)', habilidades:[{nombre:'Mutación'},{nombre:'Polimorfismo'},{nombre:'Isomería'},{nombre:'Cuchilla Corporal'},{nombre:'EXPANSIÓN: AUTOENCARNACIÓN', dominio:true}]},
+  {id:8, nombre:'Jogo', tipo:'maldicion', emoji:'火', color:'#ff4400', gradiente:'linear-gradient(135deg,#2a0800,#ff4400)', habilidades:[{nombre:'Insectos'},{nombre:'Vértice'},{nombre:'Meteorito'},{nombre:'Palmas Ardientes'},{nombre:'EXPANSIÓN: ATAÚD DE LA MONTAÑA', dominio:true}]},
+  {id:12, nombre:'Choso', tipo:'maldicion', emoji:'血', color:'#cc0033', gradiente:'linear-gradient(135deg,#1a0000,#cc0033)', habilidades:[{nombre:'Sangre Perforante'},{nombre:'Supernova'},{nombre:'Escala Roja'},{nombre:'Golpe de Ala'},{nombre:'Manantial'}]},
+  {id:15, nombre:'Hanami', tipo:'maldicion', emoji:'花', color:'#44cc44', gradiente:'linear-gradient(135deg,#001a00,#44cc44)', habilidades:[{nombre:'Raíces'},{nombre:'Semillas'},{nombre:'Rayo Solar'},{nombre:'Golpe de Madera'},{nombre:'EXPANSIÓN: MAR DE FLORES', dominio:true}]},
+  {id:22, nombre:'Kenjaku', tipo:'hechicero', emoji:'脳', color:'#cc44ff', gradiente:'linear-gradient(135deg,#110022,#cc44ff)', habilidades:[{nombre:'Manipulación de Maldiciones'},{nombre:'Técnica Robada: Ultravioleta'},{nombre:'Barrera Anti-Hechicero'},{nombre:'UZUMAKI MODIFICADO'},{nombre:'EXPANSIÓN: GRAN JUEGO', dominio:true}]},
+]
+
 function renderCharacterGrid(chars) {
-  const grid = document.getElementById('characters-grid');
-  grid.innerHTML = '';
-  chars.forEach(c => {
-    const card = document.createElement('div');
-    card.className = 'char-card';
-    card.dataset.id = c.id;
-    card.innerHTML = `
-      <div class="card-bg" style="background:${c.gradiente}"></div>
-      <div class="card-overlay"></div>
-      <div class="card-tipo ${c.tipo}">${c.tipo === 'maldicion' ? 'Maldición' : 'Hechicero'}</div>
-      <div class="card-emoji">${c.emoji}</div>
-      <div class="card-name">${c.nombre}</div>
-    `;
-    card.addEventListener('click', () => onCharClick(c, card));
-    card.addEventListener('mouseenter', () => showPreview(c));
-    grid.appendChild(card);
-  });
+  const hechicerosGrid = document.getElementById('hechiceros-grid');
+  const maldicionesGrid = document.getElementById('maldiciones-grid');
+  
+  if (!hechicerosGrid || !maldicionesGrid) {
+    // Si no existen las grillas separadas, crear una única grilla
+    const grid = document.getElementById('characters-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    chars.forEach(c => addCharCard(c, grid));
+    return;
+  }
+  
+  // Separar personajes por tipo
+  const hechiceros = chars.filter(c => c.tipo === 'hechicero');
+  const maldiciones = chars.filter(c => c.tipo === 'maldicion');
+  
+  hechicerosGrid.innerHTML = '';
+  maldicionesGrid.innerHTML = '';
+  
+  hechiceros.forEach(c => addCharCard(c, hechicerosGrid));
+  maldiciones.forEach(c => addCharCard(c, maldicionesGrid));
+}
+
+function addCharCard(c, grid) {
+  const card = document.createElement('div');
+  card.className = 'char-card';
+  card.dataset.id = c.id;
+  card.innerHTML = `
+    <div class="card-bg" style="background:${c.gradiente}"></div>
+    <div class="card-overlay"></div>
+    <div class="card-tipo ${c.tipo}">${c.tipo === 'maldicion' ? 'Maldición' : 'Hechicero'}</div>
+    <div class="card-emoji">${c.emoji}</div>
+    <div class="card-name">${c.nombre}</div>
+  `;
+  card.addEventListener('click', () => onCharClick(c, card));
+  card.addEventListener('mouseenter', () => showPreview(c));
+  grid.appendChild(card);
+}
+
+function renderCharacterGridOffline() {
+  renderCharacterGrid(CHARS_OFFLINE);
 }
 
 function onCharClick(c, card) {
@@ -150,8 +430,64 @@ function onCharClick(c, card) {
   badge.textContent = 'TÚ';
   badge.style.color = '#e8b84b';
   card.appendChild(badge);
-  socket.emit('select_character', { charIdx: c.id });
+  
+  if (MODO_OFFLINE) {
+    // MODO OFFLINE: guardar selección en localStorage
+    const salaData = JSON.parse(localStorage.getItem('jjk_sala_' + state.roomId) || '{}');
+    salaData.players[state.playerIdx].charIdx = c.id;
+    localStorage.setItem('jjk_sala_' + state.roomId, JSON.stringify(salaData));
+    
+    // Monitorear si el otro jugador seleccionó
+    if (!window.checkBothSelected) {
+      window.checkBothSelected = setInterval(() => {
+        const updated = JSON.parse(localStorage.getItem('jjk_sala_' + state.roomId) || '{}');
+        if (updated.players[0]?.charIdx !== null && updated.players[1]?.charIdx !== null) {
+          clearInterval(window.checkBothSelected);
+          window.checkBothSelected = null;
+          startBattleOffline(updated);
+        }
+      }, 300);
+    }
+  } else {
+    socket.emit('select_character', { charIdx: c.id });
+  }
+  
   document.getElementById('select-status').textContent = `Seleccionaste: ${c.nombre} — esperando al rival...`;
+}
+
+// Función para iniciar batalla en modo offline
+function startBattleOffline(salaData) {
+  const char0Data = CHARS_OFFLINE.find(c => c.id === salaData.players[0].charIdx);
+  const char1Data = CHARS_OFFLINE.find(c => c.id === salaData.players[1].charIdx);
+  
+  if (!char0Data || !char1Data) return showToast('Error cargando personajes');
+  
+  // Simular datos de personajes para la batalla
+  const chars = [
+    { ...char0Data, hp: 500, maxHp: 500, energia: 300, maxEnergia: 300, playerIdx: 0, inmovilizado: 0, potenciado: 0, defendiendo: false, dominioActivo: false },
+    { ...char1Data, hp: 500, maxHp: 500, energia: 300, maxEnergia: 300, playerIdx: 1, inmovilizado: 0, potenciado: 0, defendiendo: false, dominioActivo: false }
+  ];
+  
+  state.chars = chars;
+  state.playerNames = [salaData.players[0].name, salaData.players[1].name];
+  state.turnoActivo = 0;
+  state.isMyTurn = false;
+  state.dominio = null;
+  
+  // Guardar batalla en localStorage para sincronización
+  const battleData = {
+    chars: chars,
+    turnoActivo: 0,
+    dominio: null,
+    log: ['⚔️ ¡EL COMBATE COMIENZA!', `${chars[0].nombre} VS ${chars[1].nombre}`]
+  };
+  localStorage.setItem('jjk_batalla_' + state.roomId, JSON.stringify(battleData));
+  
+  showScreen('screen-battle');
+  renderBattle();
+  renderLog(battleData.log);
+  setActionPanelState('waiting');
+  updateDomainOverlay(null);
 }
 
 socket.on('character_selected', ({ playerIdx, charIdx }) => {
@@ -353,50 +689,17 @@ function setActionPanelState(mode, waitMsg = 'Turno del rival...') {
     waiting.classList.remove('hidden');
   } else if (mode === 'action') {
     renderActionMenu();
+    actionMenu.classList.remove('hidden');
   }
 }
 
 function renderActionMenu() {
-  const menu = document.getElementById('action-menu');
-  menu.classList.remove('hidden');
-
   const me = state.chars[state.playerIdx];
   if (!me) return;
 
   document.getElementById('btn-recargar').style.display = me.puedeEspeciales ? '' : 'none';
   document.getElementById('btn-curar').style.display    = me.puedeCurarse    ? '' : 'none';
 }
-
-document.getElementById('btn-habilidades').addEventListener('click', () => {
-  if (!state.isMyTurn) return;
-  document.getElementById('action-menu').classList.add('hidden');
-  showHabilidades();
-});
-
-document.getElementById('btn-ataque').addEventListener('click', () => {
-  if (!state.isMyTurn) return;
-  sendAction({ type: 'basic' });
-});
-
-document.getElementById('btn-guardia').addEventListener('click', () => {
-  if (!state.isMyTurn) return;
-  sendAction({ type: 'defend' });
-});
-
-document.getElementById('btn-recargar').addEventListener('click', () => {
-  if (!state.isMyTurn) return;
-  sendAction({ type: 'recargar' });
-});
-
-document.getElementById('btn-curar').addEventListener('click', () => {
-  if (!state.isMyTurn) return;
-  sendAction({ type: 'curar' });
-});
-
-document.getElementById('btn-back-hab').addEventListener('click', () => {
-  document.getElementById('habilidades-menu').classList.add('hidden');
-  renderActionMenu();
-});
 
 function sendAction(data) {
   state.isMyTurn = false;
