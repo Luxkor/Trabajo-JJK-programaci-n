@@ -25,7 +25,7 @@ Sistema de combate multijugador basado en el anime **Jujutsu Kaisen**. Enfrenta 
 - ⚡ **16 Personajes Únicos**: Elige entre hechiceros y maldiciones
 - 🛡️ **Sistema de Energía Maldita (CE)**: Gestiona recursos para usar habilidades
 - 💥 **Dominios Malditos**: Desata poderes supremos
-- 🎵 **Banda Sonora del Anime**: Disfruta de los OpeningsFamos
+- 🎵 **Banda Sonora de la serie**: Disfruta de las canciones
 - ⚔️ **Combates Estratégicos**: Ataque, defensa, curación y habilidades especiales
 
 ---
@@ -348,7 +348,7 @@ Si no puedes conectar a la red local:
 ---
 
 #### **剣 Toji Fushiguro** (HP: 650 | CE: 0)
-*Cazadora de hechiceros sin poder maldito*
+*Cazador de hechiceros sin poder maldito*
 - **Navaja Invertida** (40 daño): Anula técnicas malditas
 - **Cadena** (60 daño): Ataque de largo alcance
 - **Espada Alma** (80 daño): Corte mortal

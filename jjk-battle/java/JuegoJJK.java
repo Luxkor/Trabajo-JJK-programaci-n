@@ -980,7 +980,7 @@ public class JuegoJJK {
         catalogo.add(crearP("Sukuna", 700, 2000,
                 new String[]{"Desmantelar", "Cleave", "FUGA", "Golpe Físico", "EXPANSIÓN: SANTUARIO MALÉVOLO"},
                 new String[]{"Cortes", "Cortes precisos", "Flecha de fuego mortal", "Ataque veloz", "Cortes de daño pasivo en área por 2 turnos"},
-                true, new boolean[]{false, false, false, true, false}));
+                false, new boolean[]{false, false, false, true, false}));
 
         catalogo.add(crearP("Itadori Yuji", 550, 250,
                 new String[]{"Puño Divergente", "Destello Negro", "Artes Marciales", "Corte de Alma", "Rencor"},
