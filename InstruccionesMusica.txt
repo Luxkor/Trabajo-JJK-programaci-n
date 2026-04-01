@@ -1,0 +1,16 @@
+INSTRUCCIONES PARA LA MÚSICA
+═════════════════════════════
+
+Coloca aquí los 4 archivos MP3 con estos nombres EXACTOS:
+
+  kaikai-kitan.mp3       → "Kaikai Kitan" - Eve
+  specialz.mp3           → "SPECIALZ" - King Gnu
+  ao-no-sumika.mp3       → "Ao no Sumika" - Tatsuya Kitani
+  lost-in-paradise.mp3   → "Lost in Paradise" - ALI ft. AKLO
+
+Una vez copiados, la música funcionará al seleccionarla en el panel ♪
+durante la batalla. Si un archivo no existe, se abrirá una búsqueda
+en YouTube como alternativa.
+
+YouTube no permite embedding de estas canciones en España/Europa
+por restricciones de licencia, por eso usamos ficheros locales.

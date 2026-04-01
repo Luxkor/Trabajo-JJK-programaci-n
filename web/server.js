@@ -477,7 +477,7 @@ function activarDominio(battle, ownerIdx, hab) {
     battle.chars[battle.dominio.ownerIdx].burnout=2;
     battle.chars.forEach(c=>{c.dentrosDeDominio=false;});
   }
-  battle.dominio={ownerIdx, nombre:hab.nombre, efectoDominio:hab.efectoDominio, turnosRestantes:4};
+  battle.dominio={ownerIdx, nombre:hab.nombre, efectoDominio:hab.efectoDominio, turnosRestantes:8};
   const at=battle.chars[ownerIdx];
   at.dominioActivo=true;
   const defIdx=1-ownerIdx;
@@ -611,8 +611,10 @@ function handleDomainResult(room, domResult, atIdx) {
     const s=getSocket(room,acusadoIdx);
     if(s) s.emit('tribunal_accusation',{crimen:crime.crimen,gravedad:crime.gravedad,options:opts.opts,esApelacion:false});
   } else {
+    // Dominio activado sin choque: battle_update ya lleva el objeto dominio completo
+    // (con efectoDominio y turnosRestantes reales), así que no necesitamos
+    // domain_activated por separado.
     broadcastUpdate(room);
-    broadcast(room,'domain_activated',{efectoDominio:domResult.efectoDominio,ownerIdx:atIdx});
     checkGameOver(room);
   }
 }

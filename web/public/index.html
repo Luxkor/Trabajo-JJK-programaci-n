@@ -83,11 +83,11 @@
     <div class="select-status" id="select-status">Esperando selecciones...</div>
   </div>
   <div class="characters-section">
-    <div>
+    <div class="char-group">
       <div class="section-title">🔯 HECHICEROS</div>
       <div class="characters-grid" id="hechiceros-grid"></div>
     </div>
-    <div>
+    <div class="char-group">
       <div class="section-title">👹 MALDICIONES</div>
       <div class="characters-grid" id="maldiciones-grid"></div>
     </div>
@@ -121,45 +121,55 @@
 
   <!-- Paneles de personajes -->
   <div class="battle-top">
+
+    <!-- Jugador izquierda: [Retrato] [Nombre / barras / estado] -->
     <div class="combatant-panel left" id="panel-0">
-      <div class="combatant-name" id="name-0">—</div>
-      <div class="combatant-player" id="player-name-0">—</div>
-      <div class="combatant-sprite" id="sprite-0">
+      <div class="panel-portrait" id="sprite-0">
         <div class="sprite-emoji" id="emoji-0">?</div>
         <div class="sprite-aura" id="aura-0"></div>
       </div>
-      <div class="stat-bars">
-        <div class="bar-label">HP</div>
-        <div class="bar-track"><div class="bar-fill hp-bar" id="hp-0"></div></div>
-        <div class="bar-numbers" id="hp-num-0">—</div>
-        <div class="bar-label">CE</div>
-        <div class="bar-track"><div class="bar-fill en-bar" id="en-0"></div></div>
-        <div class="bar-numbers" id="en-num-0">—</div>
+      <div class="panel-info">
+        <div class="combatant-name"   id="name-0">—</div>
+        <div class="combatant-player" id="player-name-0">—</div>
+        <div class="stat-bars">
+          <div class="bar-label">HP</div>
+          <div class="bar-track"><div class="bar-fill hp-bar" id="hp-0"></div></div>
+          <div class="bar-numbers" id="hp-num-0">—</div>
+          <div class="bar-label">CE</div>
+          <div class="bar-track"><div class="bar-fill en-bar" id="en-0"></div></div>
+          <div class="bar-numbers" id="en-num-0">—</div>
+        </div>
+        <div class="status-icons" id="status-0"></div>
       </div>
-      <div class="status-icons" id="status-0"></div>
     </div>
+
     <div class="vs-center">
       <div class="vs-badge">VS</div>
       <div class="turn-indicator" id="turn-indicator">— TURNO —</div>
       <div class="domain-info" id="domain-info" style="display:none"></div>
     </div>
+
+    <!-- Jugador derecha: [Nombre / barras / estado] [Retrato] -->
     <div class="combatant-panel right" id="panel-1">
-      <div class="combatant-name" id="name-1">—</div>
-      <div class="combatant-player" id="player-name-1">—</div>
-      <div class="combatant-sprite" id="sprite-1">
+      <div class="panel-info">
+        <div class="combatant-name"   id="name-1">—</div>
+        <div class="combatant-player" id="player-name-1">—</div>
+        <div class="stat-bars">
+          <div class="bar-label">HP</div>
+          <div class="bar-track"><div class="bar-fill hp-bar" id="hp-1"></div></div>
+          <div class="bar-numbers" id="hp-num-1">—</div>
+          <div class="bar-label">CE</div>
+          <div class="bar-track"><div class="bar-fill en-bar" id="en-1"></div></div>
+          <div class="bar-numbers" id="en-num-1">—</div>
+        </div>
+        <div class="status-icons" id="status-1"></div>
+      </div>
+      <div class="panel-portrait" id="sprite-1">
         <div class="sprite-emoji" id="emoji-1">?</div>
         <div class="sprite-aura" id="aura-1"></div>
       </div>
-      <div class="stat-bars">
-        <div class="bar-label">HP</div>
-        <div class="bar-track"><div class="bar-fill hp-bar" id="hp-1"></div></div>
-        <div class="bar-numbers" id="hp-num-1">—</div>
-        <div class="bar-label">CE</div>
-        <div class="bar-track"><div class="bar-fill en-bar" id="en-1"></div></div>
-        <div class="bar-numbers" id="en-num-1">—</div>
-      </div>
-      <div class="status-icons" id="status-1"></div>
     </div>
+
   </div>
 
   <div class="battle-arena" id="battle-arena"><div class="arena-ground"></div></div>

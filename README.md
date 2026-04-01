@@ -1,585 +1,502 @@
 # 🔥 JUJUTSU KAISEN — BATTLE SYSTEM
 
-Sistema de combate multijugador basado en el anime **Jujutsu Kaisen**. Enfrenta a otros jugadores en tu red local con personajes únicos, habilidades especiales y dominios malditos.
+Sistema de combate por turnos multijugador basado en el anime **Jujutsu Kaisen**. Enfrenta a rivales en tu red local con personajes únicos, habilidades especiales y Dominios Malditos.
 
 ---
 
 ## 📋 Tabla de Contenidos
 
-1. [Descripción del Proyecto](#descripción-del-proyecto)
-2. [Requisitos del Sistema](#requisitos-del-sistema)
-3. [Instalación](#instalación)
-4. [Cómo Jugar](#cómo-jugar)
-5. [Guía de Personajes](#guía-de-personajes)
+1. [Descripción](#descripción)
+2. [Requisitos e Instalación](#requisitos-e-instalación)
+3. [Cómo Jugar](#cómo-jugar)
+4. [Multijugador Local](#multijugador-local)
+5. [Personajes](#personajes)
 6. [Sistema de Combate](#sistema-de-combate)
 7. [Mecánicas Especiales](#mecánicas-especiales)
+8. [Banda Sonora](#banda-sonora)
+9. [Consejos](#consejos)
 
 ---
 
-## 📖 Descripción del Proyecto
+## 📖 Descripción
 
-**JJK Battle** es un juego de turno basado en la serie de anime y manga *Jujutsu Kaisen*. Los jugadores controlan poderosos hechiceros y maldiciones en combates estratégicos.
+**JJK Battle** es un juego de turnos estratégico con 25 personajes del universo de *Jujutsu Kaisen*. Cada combatiente tiene estadísticas únicas, cinco habilidades propias y, en algunos casos, un Dominio Maldito que transforma el campo de batalla.
 
-### Características Principales
-- 🎮 **Multijugador Local**: Conecta hasta 2 jugadores en la misma red
-- ⚡ **16 Personajes Únicos**: Elige entre hechiceros y maldiciones
-- 🛡️ **Sistema de Energía Maldita (CE)**: Gestiona recursos para usar habilidades
-- 💥 **Dominios Malditos**: Desata poderes supremos
-- 🎵 **Banda Sonora de la serie**: Disfruta de las canciones
-- ⚔️ **Combates Estratégicos**: Ataque, defensa, curación y habilidades especiales
-
----
-
-## 💻 Requisitos del Sistema
-
-- **Navegador Moderno**: Chrome, Firefox, Edge o Safari (última versión)
-- **Node.js y npm** (para versión con servidor - opcional para versión offline)
-- **Conexión de Red Local**: Para jugar multijugador
-- **Pantalla**: Mínimo 1024x768px recomendado
+### Características
+- 🎮 **Multijugador local en red** — 2 jugadores en el mismo ordenador o en red LAN
+- ⚔️ **25 personajes** — hechiceros y maldiciones con kits completamente distintos
+- 🌀 **Dominios Malditos** — fondos visuales únicos y mecánicas de combate especiales
+- 💥 **Choque de Dominios** — minijuego de memoria cuando ambos expanden un dominio
+- ⚖️ **Tribunal Maldito** — juicio de Judgeman cuando Higuruma activa su dominio
+- 🎵 **Banda Sonora** — openings y endings de la serie reproducibles en partida
 
 ---
 
-## 🚀 Instalación
+## 💻 Requisitos e Instalación
 
-### Opción 1: Versión Web (Recomendado)
+- **Node.js 16+** — [nodejs.org](https://nodejs.org)
+- **Navegador moderno** — Chrome, Firefox, Edge o Safari (actualizado)
+- **Conexión de red local** para el modo multijugador entre distintos dispositivos
 
 ```bash
-# 1. Navega a la carpeta del proyecto
-cd jjk-battle/web/public
-
-# 2. Abre en el navegador
-# Windows:
-start index.html
-
-# macOS:
-open index.html
-
-# Linux:
-xdg-open index.html
-```
-
-### Opción 2: Con Servidor Node.js
-
-```bash
-# 1. Instala dependencias
+# 1. Entra en la carpeta del servidor
 cd jjk-battle/web
+
+# 2. Instala dependencias (solo la primera vez)
 npm install
 
-# 2. Inicia el servidor
+# 3. Arranca el servidor
 npm start
+```
 
-# 3. Abre en el navegador
-http://localhost:3000
+Abre `http://localhost:3000` en el navegador. En la consola verás:
+```
+JJK Battle Server arrancado · Puerto 3000
 ```
 
 ---
 
 ## 🎮 Cómo Jugar
 
-### ⚡ MODO RÁPIDO - SIN SERVIDOR (Recomendado para empezar)
-
-**No necesitas Node.js ni npm. Funciona con solo un navegador.**
-
-#### Opción A: Con Python (recomendado)
-
-```powershell
-cd "d:\jjk-battle\jjk-battle\web\public"
-python -m http.server 8000
-```
-
-Luego abre dos navegadores diferentes en `http://localhost:8000`
-
-#### Opción B: Archivo local directo
-
-```
-file:///d:/jjk-battle/jjk-battle/web/public/index.html
-```
-
-Abre dos navegadores/pestañas diferentes.
-
-#### Pasos para Jugar:
-
-**Jugador 1:**
-1. Escribe tu nombre
-2. Haz clic en **"Crear Sala"**
-3. Se genera un código de 4 caracteres (ej: `A3K7`)
-4. Comparte este código con tu amigo
-
-**Jugador 2:**
-1. Escribe tu nombre
-2. Haz clic en **"Unirse a Sala"**
-3. Pega el código del Jugador 1
-4. ¡Listo! El rival se conecta automáticamente
-
-**Ambos:**
-1. Selecciona un personaje diferentes
-2. ¡Comienza la batalla automáticamente! ⚔️
-
----
-
-### 🚀 MODO COMPLETO - CON SERVIDOR NODE.JS
-
-Para juego multijugador completo con todas las mecánicas:
-
-```bash
-# 1. Instala Node.js desde nodejs.org (si no lo tienes)
-
-# 2. Instala dependencias
-cd jjk-battle/web
-npm install
-
-# 3. Inicia el servidor
-npm start
-
-# 4. Abre en el navegador
-http://localhost:3000
-```
-
----
-
-### 📱 Modo Multijugador en Red Local (con npm)
-
-#### **Requisitos Previos**
-- Ambos jugadores en la **misma red WiFi o Ethernet**
-- Dos dispositivos (PC, laptop, tablet)
-- Navegador web actualizado
-
-#### **Paso 1: Obtén la IP de tu PC**
-
-**En Windows**:
-```powershell
-ipconfig
-# Busca "Dirección IPv4" (ej: 192.168.1.100)
-```
-
-**En macOS/Linux**:
-```bash
-ifconfig
-# Busca "inet" (ej: 192.168.1.100)
-```
-
-#### **Paso 2: Inicia servidor en tu PC**
-
-```bash
-cd jjk-battle/web
-npm start
-```
-
-#### **Paso 3: Otro dispositivo se conecta**
-
-En el otro dispositivo, abre:
-```
-http://[TU_IP]:3000
-# Ejemplo: http://192.168.1.100:3000
-```
-
----
-
 ### Pantalla Principal
-1. Presiona **⚔️ JUGAR** para entrar a la sala de combate
+Pulsa **⚔ JUGAR** para entrar a la sala de combate.
 
-### Sala de Combate (Lobby)
-1. **Escribe tu nombre** de combatiente
-2. Elige una opción:
-   - **⚡ CREAR SALA**: Genera un código para invitar a un amigo
-   - **UNIRSE**: Ingresa el código de un amigo
+### Lobby
+1. Escribe tu **nombre de combatiente**.
+2. Elige entre:
+   - **⚡ CREAR SALA** → se genera un código de 5 letras; compártelo con tu rival.
+   - **UNIRSE** → escribe el código del rival y pulsa unirse.
 
 ### Selección de Personaje
-1. **Explora los 16 personajes disponibles**
-2. Cada personaje tiene estadísticas únicas
-3. Haz clic en un personaje para ver sus habilidades
-4. Ambos jugadores deben seleccionar antes de comenzar
+- Los personajes aparecen separados en **Hechiceros** y **Maldiciones**.
+- Haz clic en una carta para verla en detalle (habilidades, daño, coste de CE).
+- Ambos jugadores deben confirmar su selección para que empiece la batalla.
 
 ### Combate
-1. **Pantalla de batalla**: Observa el VS central
-2. **Panel de acciones**: Elige tu movimiento
-3. **Barra de energía (CE)**: Gestiona tu energía maldita
-4. **Combat Log**: Sigue el flujo del combate
+En tu turno elige una de estas acciones:
+
+| Acción | Coste CE | Efecto |
+|--------|----------|--------|
+| ⚡ **Habilidades** | 5–130 CE | Usa una de tus 5 habilidades especiales |
+| 👊 **Ataque Básico** | 0 CE | 30 dmg físico · 5% de chance de Destello Negro (×2,5) |
+| 🛡️ **Guardia** | 0 CE | Reduce el daño recibido este turno un 50% |
+| 🔋 **Recargar CE** | 0 CE | Recupera 80 CE (no disponible para Maki/Toji) |
+| 💚 **Curarse (RCT)** | 5–50 CE | Recupera 150–250 HP (solo personajes con RCT) |
+
+> **Destello Negro** — hay un 5% de probabilidad en cada ataque físico de hacer ×2,5 de daño. Si la habilidad se llama "Destello Negro", el crítico es siempre garantizado.
+
+> **Esquiva** — sin dominio activo, el defensor tiene un 15% de esquivar cualquier golpe. Maki y Toji resisten el golpe seguro de los dominios.
 
 ---
 
-### 🐛 Solución de Problemas
+## 🌐 Multijugador Local
 
-| Problema | Solución |
-|----------|----------|
-| **No se sincroniza** | Abre en dos navegadores DIFERENTES (no dos pestañas del mismo navegador) |
-| **Rival no aparece** | Espera 2-3 segundos, verifica que escribió el código correcto |
-| **Página no carga** | Verifica la IP correcta: `http://192.168.X.X:3000` |
-| **Socket.io error** | Es normal sin servidor - modo offline funciona igualmente |
-| **Conexión se pierde** | Recarga la página e intenta de nuevo |
+Hay **dos formas** de jugar con otra persona, dependiendo de si estáis en el mismo ordenador o en ordenadores distintos de la misma red.
 
 ---
 
+### Opción A — Dos jugadores en el mismo ordenador
 
+1. Arranca el servidor (`npm start`).
+2. Abre **dos ventanas de navegador distintas** (no dos pestañas del mismo).
+3. Las dos apuntan a `http://localhost:3000`.
+4. Un jugador crea la sala → comparte el código → el otro se une.
 
-## 🕹️ Guía de Multijugador Local
+---
 
-### ¿Cómo Jugar con Otro Jugador en Red Local?
+### Opción B — Dos ordenadores en la misma red local (LAN/Wi-Fi)
 
-#### **Requisitos Previos**
-- Ambos jugadores en la **misma red WiFi o Ethernet**
-- Dos dispositivos (PC, laptop, tablet)
-- Navegador web actualizado en ambos
+**Paso 1 — Averigua la IP local del ordenador que hace de servidor**
 
-#### **Paso 1: Obtén la IP de tu PC**
-
-**En Windows**:
+En **Windows** abre PowerShell o CMD:
 ```powershell
-# Abre PowerShell/Símbolo del Sistema y escribe:
 ipconfig
-
-# Busca "Dirección IPv4" (ej: 192.168.1.100)
+# Busca "Dirección IPv4" → algo como 192.168.1.100
 ```
 
-**En macOS/Linux**:
+En **macOS / Linux** abre Terminal:
 ```bash
-# Abre Terminal y escribe:
 ifconfig
-
-# Busca "inet" (ej: 192.168.1.100)
+# Busca "inet" en la interfaz activa → algo como 192.168.1.100
 ```
 
-#### **Paso 2: Inicia el Servidor**
-
-**Opción A - Servidor Local (Recomendado)**:
+**Paso 2 — Arranca el servidor en ese ordenador**
 ```bash
-cd jjk-battle/web/public
-# Sistema: Levanta un servidor HTTP
-# Puedes usar cualquier servidor local (python, http-server, etc)
+cd jjk-battle/web
+npm start
 ```
 
-**Opción B - Archivo Directo**:
-1. Abre `jjk-battle/web/public/index.html` en tu navegador
+**Paso 3 — Cada jugador abre el juego en su navegador**
 
-#### **Paso 3: Acceso desde Otro Dispositivo**
+| Jugador | URL a abrir |
+|---------|-------------|
+| El que tiene el servidor | `http://localhost:3000` |
+| El otro jugador | `http://192.168.1.100:3000` (usa la IP del paso 1) |
 
-En el otro dispositivo, accede a:
-```
-http://[TU_IP]:3000/
-# o
-file:///ruta/a/jjk-battle/web/public/index.html
-```
+**Paso 4 — Crear y unirse a la sala**
 
-Ejemplo: `http://192.168.1.100:3000/`
+- **Jugador 1** → escribe su nombre → pulsa **⚡ CREAR SALA** → aparece un código de 5 letras.
+- **Jugador 2** → escribe su nombre → pega el código → pulsa **UNIRSE**.
 
-#### **Paso 4: Crear y Unirse a la Sala**
-
-**Jugador 1 (Anfitrión)**:
-1. Ingresa tu nombre
-2. Haz clic en **⚡ CREAR SALA**
-3. Se genera un **código de 4 caracteres** (ej: `A3K7`, `Z9M2`)
-4. ⚠️ **Comparte este código con tu amigo**
-
-**Jugador 2 (Invitado)**:
-1. Ingresa tu nombre
-2. Haz clic en el campo **"Código de sala"**
-3. Escribe el código que te compartió (ej: `A3K7`)
-4. Haz clic en **UNIRSE**
-
-#### **Paso 5: Seleccionar Personaje**
-
-1. Ambos jugadores ven la pantalla de selección
-2. Cada uno elige un personaje diferente
-3. Los dos deben confirmar antes de comenzar
-
-#### **Paso 6: ¡Combate!**
-
-El juego comienza cuando ambos han seleccionado.
+Los dos eligen personaje y la batalla comienza automáticamente.
 
 ---
 
-### Problemas Comunes
+### Solución de problemas
 
 | Problema | Solución |
 |----------|----------|
-| No me conecta | Verifica que estén en la misma red (WiFi/Ethernet). Prueba con IP local |
-| Código muy largo | El código es ahora solo **4 caracteres** - mucho más fácil de escribir |
-| Página no carga | Copia la IP completa: `http://192.168.X.X:3000` |
-| Socket.io error | Es normal si no tienes servidor - el juego funciona sin él |
-| Timeout | La conexión se perdió. Recarga y intenta de nuevo |
+| El otro jugador no puede conectar | Verifica que ambos estáis en la misma red Wi-Fi o Ethernet |
+| La página no carga | Comprueba la IP con `ipconfig`/`ifconfig` y que el servidor esté corriendo |
+| El firewall bloquea la conexión | En Windows, acepta el permiso de red cuando Node.js lo solicite |
+| El código de sala no funciona | Asegúrate de no confundir `O` con `0`; el código es sensible a mayúsculas |
 
 ---
 
-### Modo Offline
+## ⚔️ Personajes
 
-Si no puedes conectar a la red local:
-1. **Abre el archivo localmente** en tu dispositivo
-2. El código de sala se genera automáticamente
-3. El otro jugador debe acceder a su propia copia
-4. Pueden compartir el código manualmente
+### 🔯 HECHICEROS
 
----
+#### ∞ Gojo Satoru — HP: 600 · CE: 450
+*El hechicero más fuerte. Costes de CE casi nulos gracias al Infinito.*
 
-## ⚔️ Guía de Personajes
+| Habilidad | Dmg | Coste CE | Tipo |
+|-----------|-----|----------|------|
+| Azul | 40 | 5 | Maldita |
+| Rojo | 60 | 5 | Maldita |
+| VACÍO PÚRPURA | 80 | 5 | Maldita |
+| Destello Negro | 100 | 5 | Física (Black Flash garantizado) |
+| **EXPANSIÓN: VACÍO INFINITO** 🌀 | 60 | 15 | Dominio · inmoviliza rival 2T |
 
-### 👤 HECHICEROS (Magos Jujutsu)
-
-#### **∞ Gojo Satoru** (HP: 600 | CE: 450)
-*El mago más fuerte de la actualidad*
-- **Azul** (40 daño): Atracción gravitacional básica
-- **Rojo** (60 daño): Repulsión amplificada
-- **VACÍO PÚRPURA** (80 daño): Borra lo que toca
-- **Destello Negro** (100 daño): Impacto físico garantizado
-- **EXPANSIÓN: VACÍO INFINITO** 🔴 (60 daño): Inmoviliza al rival 2 turnos
-- ✅ Puede usar dominios | ✅ Puede curarse con RCT
+✅ RCT solo 5 CE · Inmune a confiscación de técnica
 
 ---
 
-#### **拳 Itadori Yuji** (HP: 550 | CE: 250)
-*Anfitrión del Rey de las Maldiciones*
-- **Puño Divergente** (60 daño): Golpe con retraso maldito
-- **Destello Negro** (80 daño): Crítico garantizado
-- **Artes Marciales** (100 daño): Combo físico devastador
-- **Corte de Alma** (120 daño): Daña directamente el alma
-- **Rencor** (140 daño): Frenesí de golpes imparable
-- ✅ Puede usar dominios | ❌ No puede curarse
+#### 呪 Sukuna — HP: 700 · CE: 950
+*Rey de las Maldiciones. Prioridad en choque de dominios.*
+
+| Habilidad | Dmg | Coste CE | Tipo |
+|-----------|-----|----------|------|
+| Desmantelar | 60 | 20 | Maldita |
+| Cleave | 75 | 35 | Maldita (adaptada a la resistencia) |
+| FUGA | 100 | 50 | Maldita |
+| Golpe Físico | 80 | 35 | Física |
+| **EXPANSIÓN: SANTUARIO MALÉVOLO** 🌀 | 80+50/T | 120 | Dominio · 50 dmg pasivo por turno |
+
+✅ Puede curarse · +1 pto de ventaja en choque de dominios
 
 ---
 
-#### **武 Maki Zenin** (HP: 650 | CE: 0)
-*Guerrera sin poder maldito*
-- **Nube Itinerante** (40 daño): Bastón maldito
-- **Katana Almas** (60 daño): Corte de alma
-- **Lanza** (80 daño): Estocada precisa
-- **Ataque Pesado** (100 daño): Golpe bruto
-- **Masacre** (120 daño): Frenesí veloz
-- ❌ No puede usar dominios | ✅ Puede curarse | 🛠️ Usa herramienta maldita
+#### 拳 Itadori Yuji — HP: 550 · CE: 250
+*Fuerza bruta y artes marciales. Especialista en físico.*
+
+| Habilidad | Dmg | Coste CE | Tipo |
+|-----------|-----|----------|------|
+| Puño Divergente | 60 | 20 | Física |
+| Destello Negro | 80 | 35 | Física (BF garantizado) |
+| Artes Marciales | 100 | 50 | Física |
+| Corte de Alma | 120 | 65 | Física |
+| Rencor | 140 | 100 | Física |
 
 ---
 
-#### **剣 Toji Fushiguro** (HP: 650 | CE: 0)
-*Cazador de hechiceros sin poder maldito*
-- **Navaja Invertida** (40 daño): Anula técnicas malditas
-- **Cadena** (60 daño): Ataque de largo alcance
-- **Espada Alma** (80 daño): Corte mortal
-- **Pistola** (100 daño): Ataque a distancia
-- **Bendición** (120 daño): Asalto en punto ciego
-- ❌ No puede usar dominios | ✅ Puede curarse | 🛠️ Usa herramienta maldita
+#### 武 Maki Zenin — HP: 650 · CE: 0
+*Sin técnica maldita. Puro físico con herramienta maldita.*
+
+| Habilidad | Dmg | Coste CE |
+|-----------|-----|----------|
+| Nube Itinerante | 40 | 0 |
+| Katana Almas | 60 | 0 |
+| Lanza | 80 | 0 |
+| Ataque Pesado | 100 | 0 |
+| Masacre | 120 | 0 |
+
+✅ Regeneración física +150 HP · 🛠 Herramienta maldita · Inmune al golpe seguro de dominios
 
 ---
 
-#### **愛 Yuta Okkotsu** (HP: 500 | CE: 1000)
-*Hechicero con Rika*
-- **Copia: Discurso** (40 daño): Habla maldita copiada
-- **Corte con Katana** (60 daño): Tajo básico
-- **Rika: Ataque Físico** (80 daño): Puñetazo de Rika
-- **RAYO DE AMOR VERDADERO** (100 daño): Haz concentrado de Rika
-- **EXPANSIÓN: AMOR MUTUO** 🔴 (60 daño): Potencia ataques 2 turnos
-- ✅ Muy alta energía maldita | ✅ Puede curarse
+#### 剣 Toji Fushiguro — HP: 650 · CE: 0
+*Cazador de hechiceros. Sin energía maldita, imparable.*
+
+| Habilidad | Dmg | Coste CE |
+|-----------|-----|----------|
+| Navaja Invertida | 40 | 0 |
+| Cadena | 60 | 0 |
+| Espada Alma | 80 | 0 |
+| Pistola | 100 | 0 |
+| Bendición | 120 | 0 |
+
+✅ Regeneración física +150 HP · 🛠 Herramienta maldita · Inmune al golpe seguro de dominios
 
 ---
 
-#### **♠ Kinji Hakari** (HP: 500 | CE: 300)
-*Hechicero de la escuela de Kyoto*
-- **Puñetazo Áspero** (40 daño): Papel de lija maldito
-- **Puerta Tren** (60 daño): Aplastamiento ferroviario
-- **Combo** (80 daño): Golpes rítmicos
-- **Cabezazo** (100 daño): Impacto de cráneo
-- **EXPANSIÓN: IDLE DEATH GAMBLE** 🔴: 33% jackpot = inmortalidad + CE infinita
-- ✅ Puede usar dominios con efecto especial
+#### 愛 Yuta Okkotsu — HP: 500 · CE: 1000
+*Reserva de CE enorme. Daño doble contra Maldiciones con Jacob.*
+
+| Habilidad | Dmg | Coste CE | Tipo |
+|-----------|-----|----------|------|
+| Copia: Discurso | 40 | 20 | Maldita |
+| Corte con Katana | 60 | 35 | Física |
+| Rika: Ataque Físico | 80 | 50 | Física |
+| RAYO DE AMOR VERDADERO | 100 | 65 | Maldita |
+| **EXPANSIÓN: AMOR MUTUO Y VERDADERO** 🌀 | 60 | 120 | Dominio · potencia ataques 2T |
+
+✅ Puede curarse
 
 ---
 
-#### **霊 Suguru Geto** (HP: 500 | CE: 500)
-*Maestro del control de maldiciones*
-- **Maldiciones Menores** (40 daño): Horda de maldiciones
-- **Calamar** (60 daño): Asfixia maldita
-- **Dragón** (80 daño): Carga devastadora
-- **Artes Marciales** (100 daño): Golpe físico preciso
-- **UZUMAKI** (140 daño): Técnica Máxima concentrada
-- ✅ Balance perfecto de poder y energía
+#### ♠ Kinji Hakari — HP: 500 · CE: 300
+
+| Habilidad | Dmg | Coste CE | Especial |
+|-----------|-----|----------|---------|
+| Puñetazo Áspero | 40 | 20 | — |
+| Puerta Tren | 60 | 35 | — |
+| Combo | 80 | 50 | — |
+| Cabezazo | 100 | 65 | — |
+| **EXPANSIÓN: IDLE DEATH GAMBLE** 🌀 | — | 120 | 33% jackpot: inmortalidad 4T + CE infinita |
 
 ---
 
-#### **比 Nanami Kento** (HP: 480 | CE: 250)
-*Apoderado jujutsu profesional*
-- **Ratio 7:3** (40 daño): Punto débil maldito
-- **Derrumbe** (60 daño): Destruye el entorno
-- **Golpe Contundente** (80 daño): Fuerza bruta
-- **Tajo** (100 daño): Corte limpio
-- **Horas Extras** (140 daño): Liberación de energía reprimida
-- 🛠️ Usa herramienta maldita (mazo)
+#### 霊 Suguru Geto — HP: 500 · CE: 500
+
+| Habilidad | Dmg | Coste CE |
+|-----------|-----|----------|
+| Maldiciones Menores | 40 | 20 |
+| Calamar | 60 | 35 |
+| Dragón | 80 | 50 |
+| Artes Marciales | 100 | 65 |
+| UZUMAKI | 140 | 120 |
 
 ---
 
-#### **雷 Hajime Kashimo** (HP: 490 | CE: 400)
-*Hechicero especializado en electricidad*
-- **Descarga** (40 daño): Rayo eléctrico seguro
-- Múltiples habilidades eléctricas
+#### 比 Nanami Kento — HP: 480 · CE: 250
+
+| Habilidad | Dmg | Coste CE |
+|-----------|-----|----------|
+| Ratio 7:3 | 40 | 20 |
+| Derrumbe | 60 | 35 |
+| Golpe Contundente | 80 | 50 |
+| Tajo | 100 | 65 |
+| Horas Extras | 140 | 120 |
+
+🛠 Herramienta maldita (mazo)
 
 ---
 
-#### **掌 Aoi Todo** (HP: 520 | CE: 220)
-*Campeón de la Escuela de Kyoto*
-- **Boogie Woogie** (40 daño): Intercambio posicional
-- **Puñetazo** (60 daño): Golpe seco
-- **Patada** (80 daño): Patada voladora
-- **Aplauso Sorpresa** (100 daño): Desorienta al enemigo
-- **Destello Negro** (140 daño): Impacto crítico garantizado
-- ✅ Especialista en combate físico
+#### 影 Megumi Fushiguro — HP: 420 · CE: 350
+
+| Habilidad | Dmg | Coste CE | Especial |
+|-----------|-----|----------|---------|
+| Perros Divinos | 40 | 20 | — |
+| Nue | 60 | 35 | — |
+| Elefante Máximo | 80 | 50 | — |
+| **EXPANSIÓN: JARDÍN DE SOMBRAS** 🌀 | 80 | 65 | Dominio |
+| **MAHORAGA** | — | 100 | Megumi abandona; invoca al General Divino (800 HP, instakill a maldiciones) |
 
 ---
 
-#### **钉 Nobara Kugisaki** (HP: 400 | CE: 250)
-*Especialista en técnicas de resonancia*
-- **Resonancia** (40 daño): Vínculo de alma
-- **Horquilla** (60 daño): Explosión de clavo
-- **Martillazo** (80 daño): Golpe cargado
-- **Lluvia de Clavos** (100 daño): Área de clavos
-- **Clavo Físico** (140 daño): Estocada final
-- ✅ Uso de clavos malditos
+#### ⚖ Hiromi Higuruma — HP: 470 · CE: 380
+
+| Habilidad | Dmg | Coste CE | Especial |
+|-----------|-----|----------|---------|
+| Golpe de Mazo | 55 | 20 | — |
+| Confiscación | 40 | 35 | Debilita al rival 2T |
+| Testigo de Cargo | 75 | 50 | — |
+| VEREDICTO: CULPABLE | 100 | 80 | Inmoviliza al rival 1T |
+| **EXPANSIÓN: TRIBUNAL MALDITO** 🌀 | — | 120 | Juicio de Judgeman: cargo, defensa y veredicto |
 
 ---
 
-### 😈 MALDICIONES (Entidades Malditas)
+#### ✝ Angel (Hana Kurusu) — HP: 440 · CE: 420
 
-#### **呪 Sukuna** (HP: 700 | CE: 950)
-*Rey de las Maldiciones*
-- **Desmantelar** (60 daño): Cortes malditos
-- **Cleave** (75 daño): Cortes adaptados a la resistencia
-- **FUGA** (100 daño): Flecha de fuego mortal
-- **Golpe Físico** (80 daño): Velocidad sobrehumana
-- **EXPANSIÓN: SANTUARIO MALÉVOLO** 🔴: Cortes pasivos cada turno
-- 🔥 **MÁS FUERTE**: Prioridad en dominios
-- ✅ Puede curarse con su poder maldito
+| Habilidad | Dmg | Coste CE | Especial |
+|-----------|-----|----------|---------|
+| Tajo Celestial | 60 | 25 | Ignora defensa mágica |
+| Purificación | — | 40 | Elimina efectos negativos propios +80 HP |
+| Lluvia de Plumas | 75 | 55 | — |
+| JACOB: ANIQUILACIÓN | 220 | 85 | Daño doble a Maldiciones (110×2) |
+| ESCALERA DE JACOB | 180 | 130 | Atraviesa toda defensa |
 
 ---
 
-#### **魂 Mahito** (HP: 450 | CE: 350)
-*Maldición del alma*
-- **Mutación** (40 daño): Altera el alma enemiga
-- **Polimorfismo** (60 daño): Lanza transfigurados
-- **Isomería** (80 daño): Clones de alma
-- **Cuchilla Corporal** (100 daño): Brazo en cuchilla
-- **EXPANSIÓN: AUTOENCARNACIÓN** 🔴 (80 daño): Potencia ataques 2 turnos
+#### 脳 Kenjaku — HP: 580 · CE: 550
+*Prioridad en choque de dominios. Drena CE del rival.*
+
+| Habilidad | Dmg | Coste CE | Especial |
+|-----------|-----|----------|---------|
+| Manipulación de Maldiciones | 65 | 25 | — |
+| Técnica Robada: Ultravioleta | 90 | 45 | — |
+| Barrera Anti-Hechicero | 30 | 60 | Suprime CE rival 2T |
+| UZUMAKI MODIFICADO | 130 | 90 | — |
+| **EXPANSIÓN: GRAN JUEGO** 🌀 | 60 | 130 | Dominio · inmoviliza 2T + drena 60 CE/turno |
+
++1 pto de ventaja en choque de dominios
 
 ---
 
-#### **火 Jogo** (HP: 380 | CE: 450)
-*Maldición de fuego*
-- **Insectos** (40 daño): Explosivos volcánicos
-- **Vértice** (60 daño): Magma concentrado
-- **Meteorito** (80 daño): Roca en llamas
-- **Palmas Ardientes** (100 daño): Fuego directo
-- **EXPANSIÓN: ATAÚD DE LA MONTAÑA** 🔴 (80 daño): Potencia ataques 2 turnos
+#### 風 Naoya Zenin — HP: 460 · CE: 300
+*Si muere por golpe físico sin energía, renace como Maldición.*
+
+| Habilidad | Dmg | Coste CE | Especial |
+|-----------|-----|----------|---------|
+| Vórtice | 65 | 20 | — |
+| Ventilación: Ráfaga | 80 | 35 | — |
+| Barrera de Sonido | 55 | 50 | Inmoviliza rival 1T |
+| Ventilación: Espiral Letal | 120 | 75 | — |
+| Torrente: Última Velocidad | 140 | 100 | Potencia +1T |
+
+**Forma Maldición** (HP: 550 · CE: 0) — habilidades más potentes, sin coste de CE.
 
 ---
 
-#### **花 Hanami** (HP: 550 | CE: 300)
-*Maldición de la naturaleza*
-- **Raíces** (40 daño): Empalamiento subterráneo
-- **Semillas** (60 daño): Drenaje de vida
-- **Rayo Solar** (80 daño): Haz de luz concentrado
-- **Golpe de Madera** (100 daño): Impacto forestal
-- **EXPANSIÓN: MAR DE FLORES** 🔴 (80 daño): Drena vida en área
+#### 重 Yuki Tsukumo — HP: 530 · CE: 380
+
+| Habilidad | Dmg | Coste CE | Especial |
+|-----------|-----|----------|---------|
+| Puñetazo de Masa Virtual | 70 | 20 | — |
+| Garuda: Embestida | 90 | 40 | — |
+| Masa Virtual: Escudo | 40 | 55 | Defensa + contraataque 40 dmg |
+| Garuda: Impacto Gravitacional | 115 | 80 | — |
+| MASA VIRTUAL: COLAPSO ESTELAR | 170 | 125 | — |
 
 ---
 
-#### **血 Choso** (HP: 460 | CE: 320)
-*Maldición de sangre*
-- **Sangre Perforante** (40 daño): Rayo de sangre maldita
-- **Supernova** (60 daño): Metralla de sangre
-- **Escala Roja** (80 daño): Potencia sanguínea
-- **Golpe de Ala** (100 daño): Cuchilla de sangre
-- **Manantial** (140 daño): Inundación de sangre
+### Otros hechiceros disponibles
+
+| Personaje | HP | CE | Habilidad especial |
+|-----------|----|----|-------------------|
+| ⚖ Aoi Todo | 520 | 220 | Boogie Woogie (intercambio posicional) · Destello Negro garantizado |
+| 钉 Nobara Kugisaki | 400 | 250 | Resonancia (vínculo de alma) · Lluvia de Clavos |
+| 雷 Hajime Kashimo | 490 | 400 | ÁMBAR MÍTICO (160 dmg, forma final) |
+| 鸦 Mei Mei | 450 | 250 | Bird Strike · 🛠 Herramienta |
+| 言 Inumaki Toge | 360 | 300 | Comandos verbales · Sentencia Final (140 dmg + autolesión) |
+| 熊 Panda | 550 | 200 | Núcleo Gorila · Núcleo Rhino · Trío de Golpes |
 
 ---
 
-#### **影 Megumi Fushiguro** (HP: 420 | CE: 350)
-*Hechicero con poder sobre sombras*
-- **Perros Divinos** (40 daño): Ataque de shikigami
-- **Nue** (60 daño): Descarga eléctrica
-- **Elefante Máximo** (80 daño): Aplastamiento masivo
-- **EXPANSIÓN: JARDÍN DE SOMBRAS** 🔴 (80 daño): Dominio de sombras
-- **MAHORAGA** (0 daño): Invoca al General Divino
+### 👹 MALDICIONES
+
+| Personaje | HP | CE | Dominio |
+|-----------|----|----|---------|
+| 魂 Mahito | 450 | 350 | AUTOENCARNACIÓN DE LA PERFECCIÓN (potencia 2T) |
+| 火 Jogo | 380 | 450 | ATAÚD DE LA MONTAÑA DE HIERRO (potencia 2T) |
+| 花 Hanami | 550 | 300 | MAR DE FLORES (drena vida en área) |
+| 血 Choso | 460 | 320 | — (Manantial 140 dmg) |
 
 ---
 
 ## ⚙️ Sistema de Combate
 
-### Fases del Turno
-
+### Estructura del turno
 ```
-INICIO → SELECCIÓN DE ACCIÓN → EJECUCIÓN → FIN DEL TURNO
+TU TURNO → Elige acción → Servidor calcula resultado → TURNO RIVAL
 ```
 
-### Opciones de Acción
+### Daño y modificadores
 
-| Acción | Costo | Efecto |
-|--------|-------|--------|
-| **Ataque Básico** | 0 CE | 30-40 daño físico |
-| **Habilidad** | 5-65 CE | Daño + efectos especiales |
-| **Defensa** | 0 CE | Reduce daño 50% próximo turno |
-| **Curación (RCT)** | 20-50 CE | Recupera 50-100 HP |
-| **Recargar CE** | 0 CE | Recupera 30-50 CE |
+- **Potenciado (+2T):** ×1,5 al daño de todas las habilidades.
+- **Debilitado:** ×0,6 al daño.
+- **Dominio activo (atacante):** ×1,3 al daño.
+- **Destello Negro:** ×2,5 al daño del golpe (5% en físicos, 100% si la habilidad se llama "Destello Negro").
+- **Guardia:** reduce el daño recibido ese turno un 50%.
+- **Esquiva:** 15% de evadir cualquier golpe cuando no hay dominio activo.
 
-### Estadísticas
-
-- **HP (Puntos de Salud)**: Rango 380-700 según personaje
-- **CE (Energía Maldita)**: Rango 0-1000 según personaje
-- **Ataque**: Varía por habilidad
-- **Defensa**: Reduce daño recibido
+### Energía Maldita (CE)
+- Se gasta al usar habilidades especiales.
+- Se recarga +80 CE con la acción "Recargar CE".
+- Maki y Toji no tienen CE y no pueden recargar.
+- Con **Burnout** (tras activar un dominio) solo puedes usar la habilidad 0 durante 2 turnos.
 
 ---
 
 ## 💥 Mecánicas Especiales
 
-### Dominios Malditos 🔴
+### Dominios Malditos 🌀
+Cada dominio cambia el fondo visual del campo de batalla y activa efectos únicos:
 
-Los **Dominios** son técnicas supremas que transforman el campo de batalla.
+| Personaje | Dominio | Efecto |
+|-----------|---------|--------|
+| Gojo | Vacío Infinito | Rival inmovilizado 2T |
+| Sukuna | Santuario Malévolo | 50 dmg pasivo al rival por turno |
+| Yuta | Amor Mutuo y Verdadero | +2T potenciado |
+| Mahito | Autoencarnación | +2T potenciado |
+| Jogo | Ataúd de la Montaña | +2T potenciado |
+| Megumi | Jardín de Sombras | Dominio de sombras |
+| Hanami | Mar de Flores | Drena vida en área |
+| Hakari | Idle Death Gamble | 33%: inmortalidad 4T + CE ∞ |
+| Higuruma | Tribunal Maldito | Juicio de Judgeman |
+| Kenjaku | Gran Juego | Inmoviliza 2T + drena 60 CE/turno |
 
-**Características**:
-- Costo: 65-120 CE
-- Solo personajes especializados
-- Crean un efecto visual único
-- Cambian las mecánicas de combate
+**Golpe Seguro** — dentro de un dominio, todos los golpes del propietario ignoran la esquiva del rival (excepto Maki y Toji, que lo resisten).
+
+Duración: **4 turnos**. Al terminar, el propietario entra en Burnout 2T.
+
+---
 
 ### Choque de Dominios ⚔️
+Cuando ambos jugadores activan un dominio en el mismo turno:
 
-Cuando ambos jugadores activan dominios simultáneamente:
-1. **Desafío de Memoria**: Memoriza y reproduce secuencias
-2. **3 Rondas**: Secuencias crecientes (4→5→6 dígitos)
-3. **Ganador**: Obtiene ventaja en combate
+1. Se muestra la pantalla de Choque.
+2. **3 rondas** de secuencias crecientes: 4 → 5 → 6 dígitos.
+3. Cada jugador ve **solo su propia secuencia** en su pantalla.
+4. Memoriza la tuya → ocúltala → escríbela sin errores.
+5. Gana quien acierte más rondas. Sukuna y Kenjaku tienen +1 punto de ventaja inicial.
+
+---
+
+### Tribunal Maldito ⚖️ (Higuruma)
+Al activar el dominio de Higuruma:
+
+1. Judgeman imputa un **crimen** al rival (leve / grave / fatal).
+2. El rival elige entre 3 defensas (solo una es correcta).
+3. **Inocente** → cargo retirado. **Culpable leve/grave** → Confiscación (herramienta o técnica). **Culpable fatal** → Higuruma obtiene la **Espada del Verdugo** (30% de impactar cada turno; dos impactos = muerte instantánea).
+4. En sentencias graves o fatales el acusado puede solicitar **Apelación** (segundo juicio con cargo aleatorio).
+
+---
+
+### Transformación de Naoya
+Si Naoya Zenin muere por un golpe **físico puro** (sin energía maldita), su rencor lo transforma en Maldición Especial con 550 HP, habilidades más potentes y sin coste de CE.
 
 ---
 
 ## 🎵 Banda Sonora
 
-El juego incluye openings de Jujutsu Kaisen:
-1. 🔥 Kaikai Kitan - Eve
-2. ⚡ SPECIALZ - King Gnu
-3. 💫 Ao no Sumika - Tatsuya Kitani
-4. 🌙 Lost in Paradise - ALI ft. AKLO
-5. 🎵 more more JUMP! - hololive
+Controla la música con el botón **♪** en la esquina inferior derecha durante la batalla.
 
-Control de música: Botón flotante en la esquina inferior derecha.
+| # | Canción | Artista | Contexto |
+|---|---------|---------|---------|
+| 1 | 🔥 Kaikai Kitan | Eve | Opening 1 — Temporada 1 |
+| 2 | ⚡ SPECIALZ | King Gnu | Opening Arco de Shibuya |
+| 3 | 💫 Ao no Sumika | Tatsuya Kitani | Opening Inventario Oculto |
+| 4 | 🌙 Lost in Paradise | ALI ft. AKLO | Ending 1 — Temporada 1 |
+| 5 | 🎵 more more JUMP! | hololive | Pista especial del Colegio |
 
----
-
-## 🎮 Consejos para Ganar
-
-### Estrategia Ofensiva
-- Usa habilidades especiales para máximo daño
-- Combina ataques físicos con ataques malditos
-- Aprovecha potenciaciones
-- Activa dominios para ventaja decisiva
-
-### Estrategia Defensiva
-- Alterna defensa con ataques
-- Mantén tu CE por encima de 100
-- Cura cuando baje a 40% HP
-- Anticipa dominios del enemigo
-
-### Personajes Recomendados
-
-- **Principiantes**: Itadori, Nanami, Aoi Todo
-- **Intermedios**: Gojo, Sukuna, Megumi
-- **Avanzados**: Yuta, Hakari, Geto
+La música se reproduce automáticamente al seleccionar una pista y hace loop. Requiere conexión a internet (YouTube IFrame API).
 
 ---
 
-## 📝 Licencia
+## 🏆 Consejos para Ganar
 
-Este proyecto es un fan-made basado en Jujutsu Kaisen (Gege Akutami).
+**Ofensivo**
+- Guarda CE para tu habilidad más fuerte y úsala en un turno potenciado.
+- Activa tu dominio antes de hacer daño masivo (×1,3 al daño).
+- Con Sukuna, el dominio ya hace 50 dmg gratis por turno — úsalo en turnos lentos.
+
+**Defensivo**
+- Guarda cuando tu HP baje del 40% — reduce el daño a la mitad.
+- Recarga CE cuando estés por debajo de 80 CE para no quedarte sin recursos.
+- Si el rival activa un dominio y no tienes el tuyo, guárdate o cúrate ese turno.
+
+**Selección de personaje**
+- **Principiantes:** Itadori, Nanami, Aoi Todo — kits simples y lineales.
+- **Intermedios:** Gojo, Sukuna, Megumi — altas recompensas pero más difíciles de gestionar.
+- **Avanzados:** Yuta, Hakari, Higuruma — mecánicas únicas que deciden la partida.
+
+---
+
+## 📝 Créditos
+
+Fan-made basado en *Jujutsu Kaisen* de Gege Akutami · Shueisha.  
+Proyecto educativo sin ánimo de lucro.
 
 **¿Listo para la batalla? ⚔️ ¡Que comience el combate!**

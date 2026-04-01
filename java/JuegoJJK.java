@@ -977,7 +977,7 @@ public class JuegoJJK {
         catalogo.add(gojo);
 
         // 2. SUKUNA — energía máxima elevada: el Rey de las Maldiciones tiene CE inabarcable
-        catalogo.add(crearP("Sukuna", 700, 2000,
+        catalogo.add(crearP("Sukuna", 700, 950,
                 new String[]{"Desmantelar", "Cleave", "FUGA", "Golpe Físico", "EXPANSIÓN: SANTUARIO MALÉVOLO"},
                 new String[]{"Cortes", "Cortes precisos", "Flecha de fuego mortal", "Ataque veloz", "Cortes de daño pasivo en área por 2 turnos"},
                 false, new boolean[]{false, false, false, true, false}));
@@ -1007,12 +1007,12 @@ public class JuegoJJK {
                 new String[]{"Papel de lija", "Aplastamiento", "Golpes rítmicos", "Impacto cráneo", "Probabilidad de ganar inmortalidad y CE infinita"},
                 false, new boolean[]{true, false, true, true, false}));
 
-        catalogo.add(crearP("Mahito", 450, 500,
+        catalogo.add(crearP("Mahito", 450, 350,
                 new String[]{"Mutación", "Polimorfismo", "Isomería", "Cuchilla Corporal", "EXPANSIÓN: AUTOENCARNACIÓN DE LA PERFECCIÓN"},
                 new String[]{"Altera su forma", "Lanza transfigurados", "Clones", "Brazo cuchilla", "Potencia sus ataques por 2 turnos"},
                 true, new boolean[]{false, false, false, true, false}));
 
-        catalogo.add(crearP("Jogo", 380, 600,
+        catalogo.add(crearP("Jogo", 380, 450,
                 new String[]{"Insectos", "Vértice", "Meteorito", "Palmas Ardientes", "EXPANSIÓN: ATAÚD DE LA MONTAÑA DE HIERRO"},
                 new String[]{"Explosivos", "Magma", "Roca en llamas", "Fuego directo", "Potencia sus ataques por 2 turnos"},
                 true, new boolean[]{false, false, false, true, false}));
@@ -1027,17 +1027,17 @@ public class JuegoJJK {
                 new String[]{"Horda", "Asfixia", "Carga", "Golpe físico", "Técnica Máxima concentrada"},
                 false, new boolean[]{false, false, false, true, false}));
 
-        catalogo.add(crearP("Nanami Kento", 480, 370,
+        catalogo.add(crearP("Nanami Kento", 480, 250,
                 new String[]{"Ratio 7:3", "Derrumbe", "Golpe Contundente", "Tajo", "Horas Extras"},
                 new String[]{"Punto débil", "Entorno", "Golpe bruto", "Corte limpio", "Liberación de energía"},
                 false, new boolean[]{true, false, true, true, true}));
 
-        catalogo.add(crearP("Choso", 460, 400,
+        catalogo.add(crearP("Choso", 460, 320,
                 new String[]{"Sangre Perforante", "Supernova", "Escala Roja", "Golpe de Ala", "Manantial"},
                 new String[]{"Rayo de sangre", "Metralla", "Potencia física", "Cuchilla de sangre", "Inundación"},
                 true, new boolean[]{false, false, false, true, false}));
 
-        catalogo.add(crearP("Aoi Todo", 520, 290,
+        catalogo.add(crearP("Aoi Todo", 520, 220,
                 new String[]{"Boogie Woogie", "Puñetazo", "Patada", "Aplauso Sorpresa", "Destello Negro"},
                 new String[]{"Intercambio posicional", "Golpe seco", "Patada voladora", "Desorienta", "Impacto crítico"},
                 false, new boolean[]{false, true, true, false, true}));
