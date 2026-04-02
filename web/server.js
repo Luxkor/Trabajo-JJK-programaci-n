@@ -397,7 +397,6 @@ function resolverAccion(battle, actionData) {
     addLog(battle,`   ${hab.desc}`);
     def.ultimoGolpeFisicoSinEnergia = (hab.coste===0 && !at.tieneHerramienta);
 
-    // Special effects
     if (hab.efecto==='mahoraga') {
       addLog(battle,`🐉 Megumi invoca a Mahoraga. ¡Megumi abandona el combate!`);
       battle.chars[atIdx]=deepCloneChar(MAHORAGA_DEF,atIdx);
@@ -559,11 +558,23 @@ function broadcastUpdate(room) {
   });
 }
 
+// ════════════════════════════════════════════════════
+//  FIX: notifyTurn envía your_turn al jugador activo
+//  y opponent_turn al otro. Ambos eventos llegan
+//  DESPUÉS de battle_update (mismo ciclo de evento),
+//  garantizando que el panel de cada cliente muestre
+//  el estado correcto sin ventanas de ambigüedad.
+// ════════════════════════════════════════════════════
 function notifyTurn(room) {
   if (!room.battle) return;
-  const aIdx=room.battle.turnoActivo;
-  const s0=getSocket(room,aIdx);   if(s0) s0.emit('your_turn',{playerIdx:aIdx});
-  const s1=getSocket(room,1-aIdx); if(s1) s1.emit('opponent_turn',{playerIdx:aIdx});
+  const aIdx = room.battle.turnoActivo;
+  const sActivo  = getSocket(room, aIdx);
+  const sEspera  = getSocket(room, 1-aIdx);
+
+  // Notificar al jugador cuyo turno es
+  if (sActivo)  sActivo.emit('your_turn',    { playerIdx: aIdx });
+  // Notificar al jugador que debe esperar
+  if (sEspera) sEspera.emit('opponent_turn', { playerIdx: aIdx });
 }
 
 function checkGameOver(room) {
@@ -577,7 +588,10 @@ function checkGameOver(room) {
       winnerPlayer:room.players[wIdx].name, log:room.battle.log.slice(0,20)
     });
     room.fase='over';
-  } else { notifyTurn(room); }
+  } else {
+    // ── FIX: notifyTurn siempre después de checkGameOver ──
+    notifyTurn(room);
+  }
 }
 
 function handleDomainResult(room, domResult, atIdx) {
@@ -599,6 +613,7 @@ function handleDomainResult(room, domResult, atIdx) {
       scores:[s0,s1]
     });
     sendClashRound(room,1);
+    // No llamar notifyTurn aquí: el turno se reanuda al resolver el clash
   } else if (domResult.type==='tribunal_start') {
     room.battle.fase='tribunal';
     const acusadoIdx=1-atIdx;
@@ -610,12 +625,11 @@ function handleDomainResult(room, domResult, atIdx) {
     broadcastUpdate(room);
     const s=getSocket(room,acusadoIdx);
     if(s) s.emit('tribunal_accusation',{crimen:crime.crimen,gravedad:crime.gravedad,options:opts.opts,esApelacion:false});
+    // No llamar notifyTurn aquí: el turno se reanuda al resolver el tribunal
   } else {
-    // Dominio activado sin choque: battle_update ya lleva el objeto dominio completo
-    // (con efectoDominio y turnosRestantes reales), así que no necesitamos
-    // domain_activated por separado.
+    // Dominio activado sin choque ni tribunal
     broadcastUpdate(room);
-    checkGameOver(room);
+    checkGameOver(room); // checkGameOver llama notifyTurn si el juego continúa
   }
 }
 
@@ -729,17 +743,31 @@ io.on('connection', socket => {
         playerNames:room.players.map(p=>p.name),
         turnoActivo:0, log:room.battle.log
       });
+      // FIX: notifyTurn inmediatamente después de battle_start
       notifyTurn(room);
     }
   });
 
   socket.on('player_action', actionData => {
     const room=rooms[socket.roomId]; if(!room||!room.battle) return;
-    if(room.battle.turnoActivo!==socket.playerIdx) return;
+
+    // ── FIX: verificar turno en servidor y notificar al cliente si intenta fuera de turno ──
+    if(room.battle.turnoActivo!==socket.playerIdx) {
+      // Recordar al cliente que no es su turno (evita panel "bloqueado")
+      const sEspera = getSocket(room, socket.playerIdx);
+      if (sEspera) sEspera.emit('opponent_turn', { playerIdx: room.battle.turnoActivo });
+      return;
+    }
     if(room.battle.fase!=='battle') return;
 
     const result=resolverAccion(room.battle,actionData);
-    if(!result){ socket.emit('action_invalid',{log:room.battle.log}); return; }
+    if(!result){
+      // Acción inválida: devolver el turno al mismo jugador
+      socket.emit('action_invalid',{log:room.battle.log});
+      // FIX: re-emitir your_turn para que el cliente restaure el panel
+      socket.emit('your_turn', { playerIdx: socket.playerIdx });
+      return;
+    }
 
     if(result.type==='domain'){
       const domRes=resolverDominio(room.battle,result.hab,result.atIdx);
@@ -750,7 +778,7 @@ io.on('connection', socket => {
     const hig=room.battle.chars.find(c=>c.espadaVerdugoActiva);
     if(hig){ const vIdx=1-hig.playerIdx; intentarEspada(room.battle,vIdx,hig); }
     broadcastUpdate(room);
-    checkGameOver(room);
+    checkGameOver(room); // checkGameOver llama notifyTurn si el juego continúa
   });
 
   socket.on('domain_clash_response', ({sequence, ronda}) => {
@@ -778,7 +806,8 @@ io.on('connection', socket => {
           at.burnout=2;
         }
         room.domainClashData=null; room.battle.fase='battle';
-        broadcastUpdate(room); checkGameOver(room);
+        broadcastUpdate(room);
+        checkGameOver(room); // checkGameOver llama notifyTurn
       }
     }
   });
@@ -790,7 +819,8 @@ io.on('connection', socket => {
     const result=resolverTribunal(room.battle,acIdx,acusorIdx,choice,esPrimera);
     if(result.puedeApelar){ const s=getSocket(room,acIdx); if(s) s.emit('tribunal_appeal_offer'); return; }
     room.battle.fase='battle';
-    broadcastUpdate(room); checkGameOver(room);
+    broadcastUpdate(room);
+    checkGameOver(room); // checkGameOver llama notifyTurn
   });
 
   socket.on('tribunal_appeal', ({apela}) => {
@@ -805,7 +835,8 @@ io.on('connection', socket => {
     } else {
       resolverTribunal(room.battle,trib.acusadoIdx,1-trib.acusadoIdx,-1,false);
       room.battle.fase='battle';
-      broadcastUpdate(room); checkGameOver(room);
+      broadcastUpdate(room);
+      checkGameOver(room); // checkGameOver llama notifyTurn
     }
   });
 

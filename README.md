@@ -7,14 +7,15 @@ Sistema de combate por turnos multijugador basado en el anime **Jujutsu Kaisen**
 ## 📋 Tabla de Contenidos
 
 1. [Descripción](#descripción)
-2. [Requisitos e Instalación](#requisitos-e-instalación)
-3. [Cómo Jugar](#cómo-jugar)
-4. [Multijugador Local](#multijugador-local)
-5. [Personajes](#personajes)
-6. [Sistema de Combate](#sistema-de-combate)
-7. [Mecánicas Especiales](#mecánicas-especiales)
-8. [Banda Sonora](#banda-sonora)
-9. [Consejos](#consejos)
+2. [Requisitos e Instalación — Web](#requisitos-e-instalación--web)
+3. [Versión por Consola — Java](#versión-por-consola--java)
+4. [Cómo Jugar](#cómo-jugar)
+5. [Multijugador Local](#multijugador-local)
+6. [Personajes](#personajes)
+7. [Sistema de Combate](#sistema-de-combate)
+8. [Mecánicas Especiales](#mecánicas-especiales)
+9. [Banda Sonora](#banda-sonora)
+10. [Consejos](#consejos)
 
 ---
 
@@ -32,7 +33,7 @@ Sistema de combate por turnos multijugador basado en el anime **Jujutsu Kaisen**
 
 ---
 
-## 💻 Requisitos e Instalación
+## 💻 Requisitos e Instalación — Web
 
 - **Node.js 16+** — [nodejs.org](https://nodejs.org)
 - **Navegador moderno** — Chrome, Firefox, Edge o Safari (actualizado)
@@ -53,6 +54,75 @@ Abre `http://localhost:3000` en el navegador. En la consola verás:
 ```
 JJK Battle Server arrancado · Puerto 3000
 ```
+
+> **Modo sin servidor:** también puedes abrir `web/public/index.html` directamente en dos ventanas del navegador. El juego detecta automáticamente que no hay servidor y usa `localStorage` para sincronizar el estado entre ventanas.
+
+---
+
+## 🖥️ Versión por Consola — Java
+
+El juego también puede jugarse directamente en la terminal sin necesidad de Node.js ni navegador, usando la versión Java incluida en la carpeta `java/`.
+
+### Requisitos
+
+- **JDK 8 o superior** — descárgalo desde [adoptium.net](https://adoptium.net) (OpenJDK gratuito)
+- Verifica que está instalado correctamente ejecutando en la terminal:
+  ```bash
+  java -version
+  javac -version
+  ```
+
+### Compilar y ejecutar
+
+#### Windows
+
+1. Abre **CMD** o **PowerShell** en la carpeta `java/`
+2. Ejecuta el script incluido:
+   ```bat
+   compilar.bat
+   ```
+   El script compila todos los `.java` y arranca el juego automáticamente. Si prefieres hacerlo a mano:
+   ```bat
+   javac -encoding UTF-8 *.java
+   java -Dfile.encoding=UTF-8 JuegoJJK
+   ```
+
+#### macOS / Linux
+
+1. Abre un **Terminal** en la carpeta `java/`
+2. Da permisos al script y ejecútalo:
+   ```bash
+   chmod +x compilar.sh
+   bash compilar.sh
+   ```
+   O manualmente:
+   ```bash
+   javac -encoding UTF-8 *.java
+   java -Dfile.encoding=UTF-8 JuegoJJK
+   ```
+
+> **Nota sobre caracteres:** la bandera `-Dfile.encoding=UTF-8` es necesaria en Windows para que los emojis y caracteres japoneses se vean correctamente en la terminal. Si la consola aún no los muestra, ejecuta `chcp 65001` antes de iniciar el juego.
+
+### Cómo jugar en consola
+
+1. **Nombres de combatiente** — el juego pide el nombre de cada jugador al iniciar.
+2. **Música** — elige una pista del menú (opciones 1–4); se anunciará en pantalla al empezar el combate. Los archivos MP3 deben estar en `java/audio/` si quieres reproducción real; si no, el juego lo indica por pantalla.
+3. **Selección de personaje** — cada jugador escribe el número ID del personaje que quiere usar del catálogo mostrado en pantalla.
+4. **Turnos** — por turnos, el jugador activo elige su acción:
+
+| Opción | Acción | Efecto |
+|--------|--------|--------|
+| `1` | **Habilidades Especiales** | Muestra las 5 habilidades del personaje; elige por índice (0–4) |
+| `2` | **Ataque Básico** | 30 dmg físico · 5% de Black Flash (×2,5) |
+| `3` | **Guardia** | Reduce el daño recibido este turno al 50% |
+| `4` | **Recargar CE** | +80 de energía maldita (solo personajes que la usan) |
+| `5` | **Curarse** | RCT (+250 HP) o regeneración física (+150 HP) según el personaje |
+
+5. **Expansión de Dominio** — si el jugador elige una habilidad de dominio, el rival debe responder en el mismo teclado eligiendo su acción de contraataque en el momento.
+6. **Choque de Dominios** — cuando ambos jugadores intentan expandir un dominio simultáneamente se activa el minijuego de memoria: cada jugador ve su propia secuencia secreta (4 → 5 → 6 dígitos por ronda), la memoriza y la escribe sin errores. Gana quien acumule más puntos en 3 rondas.
+7. **Tribunal Maldito** (Higuruma) — al activar su dominio, Judgeman imputa un cargo al rival. Este debe elegir la defensa correcta entre tres opciones. La elección incorrecta tiene consecuencias según la gravedad del cargo (leve / grave / fatal).
+
+> **Importante:** la versión por consola es para **2 jugadores en el mismo ordenador**, compartiendo teclado. Para juego en red usa la versión web (`npm start`).
 
 ---
 
@@ -91,11 +161,23 @@ En tu turno elige una de estas acciones:
 
 ## 🌐 Multijugador Local
 
-Hay **dos formas** de jugar con otra persona, dependiendo de si estáis en el mismo ordenador o en ordenadores distintos de la misma red.
+Hay **tres formas** de jugar con otra persona.
 
 ---
 
-### Opción A — Dos jugadores en el mismo ordenador
+### Opción A — Dos jugadores en el mismo ordenador (sin servidor)
+
+1. Abre `web/public/index.html` directamente en el navegador (doble clic en el archivo).
+2. Abre **una segunda ventana del navegador** (no una pestaña, una ventana separada) y abre el mismo archivo.
+3. En la primera ventana, escribe tu nombre y pulsa **⚡ CREAR SALA**. Aparecerá un código de 4 letras.
+4. En la segunda ventana, escribe tu nombre, pega el código en el campo "Código de sala" y pulsa **UNIRSE**.
+5. Ambas ventanas se sincronizarán automáticamente. Cuando el Jugador A actúa, la pantalla del Jugador B se actualiza al instante, y viceversa.
+
+> La sincronización funciona mediante el evento `storage` de JavaScript: cuando una ventana escribe el nuevo estado en `localStorage`, el navegador avisa automáticamente a las demás ventanas abiertas del mismo origen.
+
+---
+
+### Opción B — Dos jugadores en el mismo ordenador (con servidor)
 
 1. Arranca el servidor (`npm start`).
 2. Abre **dos ventanas de navegador distintas** (no dos pestañas del mismo).
@@ -104,7 +186,7 @@ Hay **dos formas** de jugar con otra persona, dependiendo de si estáis en el mi
 
 ---
 
-### Opción B — Dos ordenadores en la misma red local (LAN/Wi-Fi)
+### Opción C — Dos ordenadores en la misma red local (LAN/Wi-Fi)
 
 **Paso 1 — Averigua la IP local del ordenador que hace de servidor**
 
@@ -150,6 +232,7 @@ Los dos eligen personaje y la batalla comienza automáticamente.
 | La página no carga | Comprueba la IP con `ipconfig`/`ifconfig` y que el servidor esté corriendo |
 | El firewall bloquea la conexión | En Windows, acepta el permiso de red cuando Node.js lo solicite |
 | El código de sala no funciona | Asegúrate de no confundir `O` con `0`; el código es sensible a mayúsculas |
+| La pantalla no se sincroniza (sin servidor) | Asegúrate de abrir dos **ventanas** independientes, no pestañas del mismo navegador |
 
 ---
 
@@ -469,9 +552,8 @@ Controla la música con el botón **♪** en la esquina inferior derecha durante
 | 2 | ⚡ SPECIALZ | King Gnu | Opening Arco de Shibuya |
 | 3 | 💫 Ao no Sumika | Tatsuya Kitani | Opening Inventario Oculto |
 | 4 | 🌙 Lost in Paradise | ALI ft. AKLO | Ending 1 — Temporada 1 |
-| 5 | 🎵 more more JUMP! | hololive | Pista especial del Colegio |
 
-La música se reproduce automáticamente al seleccionar una pista y hace loop. Requiere conexión a internet (YouTube IFrame API).
+La música se reproduce automáticamente al seleccionar una pista y hace loop. Coloca los archivos MP3 en `web/public/audio/` con los nombres exactos indicados en `InstruccionesMusica.txt`.
 
 ---
 
