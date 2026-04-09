@@ -130,8 +130,34 @@ function createMahoraga(playerIdx) {
 }
 
 // ════════════════════════════════════════════════════
-//  UTILIDADES
+//  NAOYA ZENIN (MALDICIÓN)
+//  Se invoca cuando Naoya muere por golpe físico puro
+//  (sin energía maldita en el atacante, sin herramienta)
 // ════════════════════════════════════════════════════
+function createNaoyaMaldicion(playerIdx) {
+  return {
+    id:230, nombre:'Naoya Zenin (Maldición)', tipo:'maldicion',
+    hp:550, maxHp:550, energia:0, maxEnergia:0,
+    emoji:'怨', color:'#ff44aa',
+    gradiente:'linear-gradient(135deg,#1a0010,#ff44aa)',
+    puedeEspeciales:false,  // sin CE → todos los ataques cuestan 0
+    puedeCurarse:false, tieneHerramienta:false, herramientaConfiscada:false,
+    playerIdx, burnout:0, inmortal:0, inmovilizado:0, potenciado:0,
+    causaInmovilizacion:'técnica enemiga', defendiendo:false,
+    dominioActivo:false, espadaVerdugoActiva:false, golpesEspada:0,
+    // Último golpe recibido — para evitar una doble transformación
+    _ultimoGolpeFisicoSinEnergia: false,
+    habilidades:[
+      {nombre:'Vórtice Maldito',         desc:'Vórtice de aire corrompido con odio',         danio:95,  coste:0, fisico:true},
+      {nombre:'Torbellino de Odio',       desc:'Espiral de rencor puro, imparable',           danio:115, coste:0, fisico:true},
+      {nombre:'Barrera Sónica Maldita',   desc:'Inmoviliza al rival 2 turnos',                danio:75,  coste:0, fisico:true,  efecto:'inmovilizar2'},
+      {nombre:'Orgullo del Clan Zenin',   desc:'+100 HP y potenciado 2T',                     danio:0,   coste:0, fisico:false, efecto:'orgullo'},
+      // Dominio propio de la forma Maldición
+      {nombre:'EXPANSIÓN: ESPIRAL DE RENCOR', desc:'El odio eterno de Naoya envuelve el campo — potencia +2T y 30 dmg pasivo/turno',
+       danio:60, coste:0, fisico:false, dominio:true, efecto:'potenciar', efectoDominio:'santuario-malevolo'},
+    ]
+  };
+}
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.classList.add('hidden');});
   const el=document.getElementById(id);
@@ -207,7 +233,8 @@ window.addEventListener('storage',function(e){
   if(e.key==='jjk_battle_'+state.roomId&&e.newValue){
     const data=JSON.parse(e.newValue);
     const scr=currentScreen();
-    if(scr==='screen-select'||scr==='screen-lobby')showScreen('screen-battle');
+    // Volver a batalla desde cualquier pantalla especial (clash, tribunal, select, lobby)
+    if(scr==='screen-select'||scr==='screen-lobby'||scr==='screen-clash'||scr==='screen-tribunal')showScreen('screen-battle');
     state.chars=data.chars; state.turnoActivo=data.turnoActivo;
     state.dominio=data.dominio; state.offlineLog=data.log;
     if(data.playerNames)state.playerNames=data.playerNames;
@@ -523,7 +550,7 @@ function offlineDmg(atacante,hab){
   return d;
 }
 
-function offlineApply(defensor,dmg){
+function offlineApply(defensor,dmg,atacante){
   // Dentro de un dominio el golpe es garantizado (salvo Maki/Toji)
   const esMakiToji=defensor.nombre==='Maki Zenin'||defensor.nombre==='Toji Fushiguro';
   if(!state.dominio&&!esMakiToji&&Math.random()<0.15){offlineLog(`💨 ¡${defensor.nombre} esquivó el ataque!`);return;}
@@ -532,6 +559,13 @@ function offlineApply(defensor,dmg){
   if(defensor.defendiendo)offlineLog(`🛡️ ${defensor.nombre} reduce el daño a la mitad.`);
   defensor.hp=Math.max(0,defensor.hp-d);
   offlineLog(`${defensor.nombre} recibe ${d} de daño. (HP: ${defensor.hp}/${defensor.maxHp})`);
+  // Guardar si el último golpe fue físico puro (sin CE ni herramienta)
+  // Necesario para la transformación de Naoya
+  if(atacante){
+    const sinEnergia = !atacante.tieneHerramienta && atacante.energia===0 ||
+                       !atacante.tieneHerramienta && (atacante._lastHabCoste===0);
+    defensor._ultimoGolpeFisicoSinEnergia = sinEnergia;
+  }
 }
 
 function processOfflineAction(type,habIdx){
@@ -551,7 +585,8 @@ function processOfflineAction(type,habIdx){
 
   if(type==='basic'){
     offlineLog(`${at.nombre} lanza un Ataque Físico.`);
-    offlineApply(def,offlineDmg(at,null));
+    at._lastHabCoste=0;  // coste 0 → golpe físico puro
+    offlineApply(def,offlineDmg(at,null),at);
   } else if(type==='defend'){
     at.defendiendo=true;offlineLog(`🛡️ ${at.nombre} se pone en guardia.`);
   } else if(type==='recargar'){
@@ -581,6 +616,7 @@ function processOfflineAction(type,habIdx){
     }
 
     at.energia-=(hab.coste||0);
+    at._lastHabCoste=(hab.coste||0);  // para detectar golpe físico puro en transformación Naoya
     offlineLog(`✨ ${at.nombre} usa: ${hab.nombre}`);
 
     // Efectos que finalizan turno inmediatamente
@@ -595,7 +631,7 @@ function processOfflineAction(type,habIdx){
         def.hp=0;
       } else {
         offlineLog(`⚔️ Tajo de Exterminio — sin bonus extra contra hechiceros.`);
-        offlineApply(def,offlineDmg(at,hab));
+        offlineApply(def,offlineDmg(at,hab),at);
       }
       tickOfflineDominio();finishOfflineTurn();return;
     }
@@ -610,7 +646,7 @@ function processOfflineAction(type,habIdx){
         offlineLog(`✝️ JACOB: ANIQUILACIÓN — daño doble! ${def.nombre} recibe ${d2} dmg.`);
       } else {
         offlineLog(`✝️ JACOB — sin bonus extra contra hechiceros. Daño normal.`);
-        offlineApply(def,offlineDmg(at,hab));
+        offlineApply(def,offlineDmg(at,hab),at);
       }
       tickOfflineDominio();finishOfflineTurn();return;
     }
@@ -627,6 +663,11 @@ function processOfflineAction(type,habIdx){
     if(hab.efecto==='inmovilizar2'){def.inmovilizado=2;def.causaInmovilizacion=hab.nombre;offlineLog(`⛓ ${def.nombre} inmovilizado 2T.`);}
     if(hab.efecto==='autolesion')  {const sl=Math.floor((hab.danio||0)*0.2);at.hp=Math.max(0,at.hp-sl);offlineLog(`🩸 ${at.nombre} sufre ${sl} de retroceso.`);}
     if(hab.efecto==='gran-juego')  {def.inmovilizado=2;def.energia=0;offlineLog(`🌀 Gran Juego: ${def.nombre} inmovilizado 2T y sin CE.`);}
+    // Naoya Maldición — Orgullo del Clan Zenin
+    if(hab.efecto==='orgullo'){
+      at.potenciado=2;at.hp=Math.min(at.maxHp,at.hp+100);
+      offlineLog(`💀 ¡Orgullo del Clan Zenin! ${at.nombre} +100 HP y potenciado 2T.`);
+    }
 
     // DOMINIO: abrir flujo de respuesta
     if(hab.dominio){
@@ -646,7 +687,7 @@ function processOfflineAction(type,habIdx){
     }
 
     // Daño normal
-    if((hab.danio||0)>0)offlineApply(def,offlineDmg(at,hab));
+    if((hab.danio||0)>0)offlineApply(def,offlineDmg(at,hab),at);
   }
 
   tickOfflineDominio();
@@ -850,10 +891,10 @@ function _resolverRondaClash(phase){
     clearPhase();
     _aplicarActivacionDominio(winnerIdx,winnerHab,state.chars[winnerIdx],state.chars[loserIdx]);
     renderBattle();renderLog(state.offlineLog);updateDomainOverlay(state.dominio);
+    // Salir del clash ANTES de guardar → J0 sale aquí, J1 sale por el storage event
+    showScreen('screen-battle');
     saveBattleToStorage();
     _despuesDominioActivado(winnerIdx,winnerHab);
-    // Hacer visible #screen-battle en ambas ventanas
-    showScreen('screen-battle');
   }
 }
 
@@ -1029,6 +1070,10 @@ function tickOfflineDominio(){
     state.chars[defIdx].hp=Math.max(0,state.chars[defIdx].hp-30);
     offlineLog(`🌸 Mar de Flores drena 30 HP.`);
   }
+  if(owner.nombre==='Naoya Zenin (Maldición)'){
+    state.chars[defIdx].hp=Math.max(0,state.chars[defIdx].hp-30);
+    offlineLog(`💀 Espiral de Rencor: 30 dmg pasivo del odio eterno de Naoya.`);
+  }
   dom.turnosRestantes--;
   if(dom.turnosRestantes<=0){
     offlineLog(`El dominio de ${owner.nombre} se ha disipado.`);
@@ -1038,7 +1083,22 @@ function tickOfflineDominio(){
 }
 
 function finishOfflineTurn(){
-  const c0=state.chars[0],c1=state.chars[1];
+  // ── Transformación de Naoya ─────────────────────────────────
+  // Debe comprobarse ANTES del chequeo de game over.
+  // Si Naoya muere por golpe físico puro (coste 0, sin herramienta)
+  // renace como Maldición Especial; state.chars[i] se reemplaza aquí.
+  for(let i=0;i<2;i++){
+    const c=state.chars[i];
+    if(c && c.nombre==='Naoya Zenin' && c.hp<=0 && c._ultimoGolpeFisicoSinEnergia){
+      offlineLog(`☠️ Naoya Zenin ha caído... pero su rencor no descansa.`);
+      offlineLog(`💀 ¡NAOYA ZENIN RENACE COMO MALDICIÓN ESPECIAL!`);
+      state.chars[i]=createNaoyaMaldicion(i);
+    }
+  }
+
+  // Leer DESPUÉS de la posible transformación para no usar referencias antiguas
+  const c0=state.chars[0], c1=state.chars[1];
+
   if(c0.hp<=0||c1.hp<=0){
     const wIdx=c0.hp>0?0:1;
     offlineLog(`🏆 ¡${state.chars[wIdx].nombre} [${state.playerNames[wIdx]}] ha ganado!`);
