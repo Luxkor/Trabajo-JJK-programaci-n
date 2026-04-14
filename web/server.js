@@ -6,6 +6,7 @@ const express = require('express');
 const http    = require('http');
 const { Server } = require('socket.io');
 const path    = require('path');
+const os      = require('os');
 
 const app    = express();
 const server = http.createServer(app);
@@ -849,6 +850,16 @@ io.on('connection', socket => {
 function arrMatch(a,b){ if(!a||!b||a.length!==b.length) return false; return a.every((v,i)=>v===b[i]); }
 
 const PORT=process.env.PORT||3000;
+function getLocalIPs(){
+  const ifaces=os.networkInterfaces();
+  const ips=[];
+  for(const name of Object.keys(ifaces)){
+    for(const addr of ifaces[name]){
+      if(addr.family==='IPv4' && !addr.internal) ips.push(addr.address);
+    }
+  }
+  return [...new Set(ips)];
+}
 server.listen(PORT,'0.0.0.0',()=>{
   console.log(`\n╔══════════════════════════════════════════════╗`);
   console.log(`║  JJK Battle Server arrancado                 ║`);
@@ -856,4 +867,9 @@ server.listen(PORT,'0.0.0.0',()=>{
   console.log(`║  Abre http://localhost:${PORT} en tu navegador ║`);
   console.log(`║  Para multijugador usa tu IP local           ║`);
   console.log(`╚══════════════════════════════════════════════╝\n`);
+  const localIPs = getLocalIPs();
+  if(localIPs.length){
+    console.log('IPs locales disponibles: ' + localIPs.join(', '));
+    console.log('Usa una de estas direcciones desde el otro PC.');
+  }
 });
