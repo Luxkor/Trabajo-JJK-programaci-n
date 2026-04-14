@@ -43,6 +43,7 @@ esac
 NODE_TARBALL="node-${NODE_VERSION}-${PLATFORM}.tar.xz"
 NODE_URL="https://nodejs.org/dist/${NODE_VERSION}/${NODE_TARBALL}"
 NODE_TMP="$SCRIPT_DIR/${NODE_TARBALL}"
+PORT="${PORT:-5000}"
 
 echo ""
 echo " ================================================="
@@ -139,13 +140,13 @@ fi
 [ -z "$LOCAL_IP" ] && LOCAL_IP="(no detectada — usa ifconfig para verla)"
 
 echo ""
-echo " [3/3] Arrancando en http://localhost:3000"
+echo " [3/3] Arrancando en http://localhost:${PORT}"
 echo ""
 echo " -------------------------------------------------"
 echo "  COMO JUGAR:"
 echo ""
-echo "  Mismo PC   >  http://localhost:3000"
-echo "  Red local  >  http://${LOCAL_IP}:3000"
+echo "  Mismo PC   >  http://localhost:${PORT}"
+echo "  Red local  >  http://${LOCAL_IP}:${PORT}"
 echo ""
 echo "  El otro jugador usa la URL de Red local."
 echo " -------------------------------------------------"
@@ -154,4 +155,4 @@ echo "  Ctrl+C para detener el servidor."
 echo ""
 
 cd "$SCRIPT_DIR"
-"$NODE_BIN" server.js
+PORT="$PORT" "$NODE_BIN" server.js

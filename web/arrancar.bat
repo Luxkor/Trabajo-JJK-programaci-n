@@ -15,7 +15,15 @@ set NODE_EXE=%NODE_DIR%\node.exe
 set NPM_CMD=%NODE_DIR%\npm.cmd
 set NODE_ZIP=%SCRIPT_DIR%node_tmp.zip
 set NODE_URL=https://nodejs.org/dist/%NODE_VERSION%/node-%NODE_VERSION%-win-x64.zip
-set PORT=3000
+
+:: Si el usuario define PORT antes de ejecutar el script, se usa ese puerto.
+if defined PORT (
+  set "REQUESTED_PORT=%PORT%"
+) else (
+  set "REQUESTED_PORT="
+)
+
+set PORT=5000
 
 echo.
 echo  =================================================
@@ -100,15 +108,36 @@ echo  [2/3] Dependencias ya instaladas.
 
 :start_server
 
+:: Si el usuario pidió un puerto explícito, úsalo si está libre.
+if defined REQUESTED_PORT (
+    netstat -ano | findstr /C=":%REQUESTED_PORT% " >nul
+    if errorlevel 1 (
+        set "PORT=%REQUESTED_PORT%"
+        goto port_ready
+    )
+    if "%REQUESTED_PORT%"=="3000" goto search_ports
+    echo.
+    echo  [ERROR] El puerto %REQUESTED_PORT% ya está en uso.
+    echo  Usa otro valor para PORT o cierra el proceso que lo ocupa.
+    pause
+    exit /b 1
+)
+
+:search_ports
 :: Buscar primer puerto libre entre 3000 y 3010
 for /l %%P in (3000,1,3010) do (
-    netstat -ano | findstr /C:":%%P " >nul
+    netstat -ano | findstr /C=":%%P " >nul
     if errorlevel 1 (
         set PORT=%%P
-        goto port_found
+        goto port_ready
     )
 )
-:port_found
+echo.
+echo  [ERROR] No se encontró un puerto libre entre 3000 y 3010.
+pause
+exit /b 1
+
+:port_ready
 
 set LOCAL_IP=no detectada
 set LOCAL_IPS=

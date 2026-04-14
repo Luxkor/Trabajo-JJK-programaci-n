@@ -50,16 +50,37 @@ npm install
 npm start
 ```
 
-Si no tienes Node.js/NPM instalado, usa el script portable incluido en Windows:
+Si no tienes Node.js/NPM instalado, usa los scripts portables incluidos:
 
+Windows:
 ```bat
 cd jjk-battle\web
 arrancar.bat
 ```
 
-Abre `http://localhost:3000` en el navegador. En la consola verás:
+macOS / Linux:
+```bash
+cd jjk-battle/web
+bash arrancar.sh
 ```
-JJK Battle Server arrancado · Puerto 3000
+
+Para usar un puerto distinto al predeterminado (`5000`):
+
+Windows:
+```bat
+set PORT=3000
+arrancar.bat
+```
+
+macOS / Linux:
+```bash
+export PORT=3000
+bash arrancar.sh
+```
+
+Abre `http://localhost:<puerto>` en el navegador. En la consola verás un mensaje similar a:
+```
+JJK Battle Server arrancado · Puerto 5000
 ```
 
 > **Modo sin servidor:** también puedes abrir `web/public/index.html` directamente en dos ventanas del navegador. El juego detecta automáticamente que no hay servidor y usa `localStorage` para sincronizar el estado entre ventanas.
