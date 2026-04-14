@@ -18,9 +18,21 @@ let eventHandlers = {};
 if (typeof io !== 'undefined') {
   socket = io({ reconnection:true, reconnectionDelay:1000, reconnectionDelayMax:5000,
                 reconnectionAttempts:5, transports:['websocket','polling'] });
-  socket.on('connect',       () => { MODO_OFFLINE = false; });
-  socket.on('connect_error', (e) => console.error('Socket error:', e));
-  socket.on('disconnect',    (r) => console.warn('Desconectado:', r));
+  socket.on('connect', () => {
+    MODO_OFFLINE = false;
+    showToast('Conectado al servidor de juego.', 3000);
+  });
+  socket.on('connect_error', (e) => {
+    console.error('Socket error:', e);
+    showToast('No se pudo conectar al servidor. Verifica la URL y el puerto.', 6000);
+  });
+  socket.on('reconnect_failed', () => {
+    showToast('No se pudo reconectar al servidor. Comprueba la red.', 6000);
+  });
+  socket.on('disconnect', (reason) => {
+    if (!MODO_OFFLINE) showToast('Desconectado del servidor. Comprueba la IP y el puerto.', 6000);
+    console.warn('Desconectado:', reason);
+  });
 } else {
   MODO_OFFLINE = true;
   socket = {

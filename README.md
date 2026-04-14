@@ -50,6 +50,13 @@ npm install
 npm start
 ```
 
+Si no tienes Node.js/NPM instalado, usa el script portable incluido en Windows:
+
+```bat
+cd jjk-battle\web
+arrancar.bat
+```
+
 Abre `http://localhost:3000` en el navegador. En la consola verás:
 ```
 JJK Battle Server arrancado · Puerto 3000
