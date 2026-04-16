@@ -6,7 +6,6 @@ const express = require('express');
 const http    = require('http');
 const { Server } = require('socket.io');
 const path    = require('path');
-const os      = require('os');
 
 const app    = express();
 const server = http.createServer(app);
@@ -850,26 +849,49 @@ io.on('connection', socket => {
 function arrMatch(a,b){ if(!a||!b||a.length!==b.length) return false; return a.every((v,i)=>v===b[i]); }
 
 const PORT=process.env.PORT||3000;
-function getLocalIPs(){
-  const ifaces=os.networkInterfaces();
-  const ips=[];
-  for(const name of Object.keys(ifaces)){
-    for(const addr of ifaces[name]){
-      if(addr.family==='IPv4' && !addr.internal) ips.push(addr.address);
-    }
-  }
-  return [...new Set(ips)];
-}
+const MODO_TUNEL=process.argv.includes('--tunnel');
+
 server.listen(PORT,'0.0.0.0',()=>{
   console.log(`\n╔══════════════════════════════════════════════╗`);
   console.log(`║  JJK Battle Server arrancado                 ║`);
-  console.log(`║  Puerto: ${PORT}                                 ║`);
-  console.log(`║  Abre http://localhost:${PORT} en tu navegador ║`);
+  console.log(`║  Puerto: ${PORT}                                ║`);
+  console.log(`║  Abre http://localhost:${PORT} en tu navegador  ║`);
+  if(!MODO_TUNEL){
   console.log(`║  Para multijugador usa tu IP local           ║`);
+  }
   console.log(`╚══════════════════════════════════════════════╝\n`);
-  const localIPs = getLocalIPs();
-  if(localIPs.length){
-    console.log('IPs locales disponibles: ' + localIPs.join(', '));
-    console.log('Usa una de estas direcciones desde el otro PC.');
+
+  // ── Modo túnel (flag --tunnel) ─────────────────────────────
+  // Crea una URL pública HTTPS usando localtunnel.
+  // El otro jugador abre esa URL desde cualquier red, sin necesidad
+  // de configurar firewall ni permisos de administrador.
+  if(MODO_TUNEL){
+    let lt;
+    try { lt = require('localtunnel'); }
+    catch(e){
+      console.error('ERROR: localtunnel no está instalado.');
+      console.error('Usa los scripts arrancar.bat / arrancar.sh para instalarlo.');
+      return;
+    }
+    (async()=>{
+      try{
+        const tunnel = await lt({ port: PORT });
+        const url = tunnel.url;
+        const pad = (s, n) => s + ' '.repeat(Math.max(0, n - s.length));
+        console.log(`╔══════════════════════════════════════════════════════════╗`);
+        console.log(`║  🌐 MODO TÚNEL ACTIVO — SIN FIREWALL                     ║`);
+        console.log(`║                                                          ║`);
+        console.log(`║  URL PÚBLICA: ${pad(url, 46)}║`);
+        console.log(`║                                                          ║`);
+        console.log(`║  Comparte esta URL con el otro jugador.                  ║`);
+        console.log(`║  Funciona desde cualquier red sin admin.                 ║`);
+        console.log(`╚══════════════════════════════════════════════════════════╝\n`);
+        tunnel.on('close', ()=>{ console.log('Túnel cerrado.'); process.exit(0); });
+        tunnel.on('error', (err)=>console.error('Error de túnel:', err.message));
+      } catch(err){
+        console.error('No se pudo crear el túnel:', err.message);
+        console.error('Comprueba tu conexión a internet.');
+      }
+    })();
   }
 });
