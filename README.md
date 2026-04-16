@@ -43,14 +43,11 @@ Sistema de combate por turnos multijugador basado en el anime **Jujutsu Kaisen**
 # 1. Entra en la carpeta del servidor
 cd jjk-battle/web
 
-# 2. Instala dependencias (solo la primera vez)
-npm install
-
-# 3. Arranca el servidor
-npm start
+# 2. Arranca el servidor (Windows recomendado)
+arrancar.bat
 ```
 
-Si no tienes Node.js/NPM instalado, usa los scripts portables incluidos:
+Si no tienes Node.js/NPM global instalado, usa los scripts portables incluidos:
 
 Windows:
 ```bat
@@ -150,7 +147,7 @@ El juego también puede jugarse directamente en la terminal sin necesidad de Nod
 6. **Choque de Dominios** — cuando ambos jugadores intentan expandir un dominio simultáneamente se activa el minijuego de memoria: cada jugador ve su propia secuencia secreta (4 → 5 → 6 dígitos por ronda), la memoriza y la escribe sin errores. Gana quien acumule más puntos en 3 rondas.
 7. **Tribunal Maldito** (Higuruma) — al activar su dominio, Judgeman imputa un cargo al rival. Este debe elegir la defensa correcta entre tres opciones. La elección incorrecta tiene consecuencias según la gravedad del cargo (leve / grave / fatal).
 
-> **Importante:** la versión por consola es para **2 jugadores en el mismo ordenador**, compartiendo teclado. Para juego en red usa la versión web (`npm start`).
+> **Importante:** la versión por consola es para **2 jugadores en el mismo ordenador**, compartiendo teclado. Para juego en red usa la versión web (`arrancar.bat` en Windows o `bash arrancar.sh` en macOS/Linux).
 
 ---
 
@@ -207,7 +204,7 @@ Hay **tres formas** de jugar con otra persona.
 
 ### Opción B — Dos jugadores en el mismo ordenador (con servidor)
 
-1. Arranca el servidor (`npm start`).
+1. Arranca el servidor (`arrancar.bat` en Windows o `bash arrancar.sh` en macOS/Linux).
 2. Abre **dos ventanas de navegador distintas** (no dos pestañas del mismo).
 3. Las dos apuntan a `http://localhost:3000`.
 4. Un jugador crea la sala → comparte el código → el otro se une.
@@ -233,7 +230,7 @@ ifconfig
 **Paso 2 — Arranca el servidor en ese ordenador**
 ```bash
 cd jjk-battle/web
-npm start
+arrancar.bat
 ```
 
 **Paso 3 — Cada jugador abre el juego en su navegador**

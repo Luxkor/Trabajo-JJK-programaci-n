@@ -17,12 +17,14 @@
 <!-- SCREEN 1: MENÚ PRINCIPAL -->
 <div id="screen-main" class="screen active">
   <div class="main-bg"><div class="main-bg-kanji" aria-hidden="true">呪</div></div>
+  <div class="main-sigil" aria-hidden="true"></div>
   <div class="main-content">
     <div class="main-logo">
       <div class="main-logo-jp">呪術廻戦</div>
       <h1 class="main-logo-en">JUJUTSU KAISEN</h1>
       <div class="main-logo-sub"><span class="main-logo-line"></span>BATTLE&nbsp;SYSTEM<span class="main-logo-line"></span></div>
       <div class="main-logo-ver">v 5.0 &nbsp;·&nbsp; WEB EDITION</div>
+      <div class="main-logo-quote">"Entre hechiceros y maldiciones, solo sobrevive el más fuerte."</div>
     </div>
     <div class="main-actions">
       <button class="btn-jugar" id="btn-jugar">
@@ -49,6 +51,7 @@
       <div class="lobby-title-group">
         <div class="lobby-title-jp">対戦</div>
         <div class="lobby-title-en">SALA DE COMBATE</div>
+        <div class="lobby-title-sub">Protocolo de enfrentamiento maldito</div>
       </div>
     </div>
     <div class="lobby-panel">
@@ -280,7 +283,11 @@
 <div id="toast" class="toast hidden"></div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script>if(typeof io==='undefined'){document.write('<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"><\/script>');}</script>
+<script>
+  if(typeof io==='undefined'){
+    document.write('<script src="./js/socket.io.min.js"><\/script>');
+  }
+</script>
 <script src="./js/client.js"></script>
 </body>
 </html>

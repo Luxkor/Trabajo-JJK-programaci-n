@@ -16,6 +16,7 @@ let MODO_OFFLINE = false;
 let eventHandlers = {};
 let pendingSocketListeners = [];
 let serverBaseUrl = null;
+let pendingLobbyAction = null;
 
 function getSocketOptions(){
   return { reconnection:true, reconnectionDelay:1000, reconnectionDelayMax:5000,
@@ -65,6 +66,71 @@ function connectToServer(url){
   return true;
 }
 
+function waitForSocketConnect(sock, timeoutMs = 5000){
+  return new Promise((resolve, reject) => {
+    if(!sock) return reject(new Error('Socket no disponible'));
+    if(sock.connected) return resolve();
+    let done = false;
+    const cleanup = () => {
+      if(typeof sock.off === 'function'){
+        sock.off('connect', onConnect);
+        sock.off('connect_error', onError);
+      }
+      clearTimeout(timer);
+    };
+    const finish = (ok, err) => {
+      if(done) return;
+      done = true;
+      cleanup();
+      if(ok) resolve();
+      else reject(err || new Error('No se pudo conectar'));
+    };
+    const onConnect = () => finish(true);
+    const onError = (err) => finish(false, err || new Error('Error de conexión'));
+    const timer = setTimeout(() => finish(false, new Error('Tiempo de conexión agotado')), timeoutMs);
+    if(typeof sock.on === 'function'){
+      sock.on('connect', onConnect);
+      sock.on('connect_error', onError);
+    }
+    if(typeof sock.connect === 'function'){
+      sock.connect();
+    }
+  });
+}
+
+function runPendingLobbyAction(){
+  if(!pendingLobbyAction || !socket || !socket.connected) return;
+  const action = pendingLobbyAction;
+  pendingLobbyAction = null;
+  action();
+}
+
+async function ensureLobbyConnection(serverInput){
+  if(MODO_OFFLINE) return true;
+  if(socket && socket.connected) return true;
+  try {
+    if(serverInput){
+      if(!connectToServer(serverInput)) return false;
+      await waitForSocketConnect(socket);
+      return true;
+    }
+    if (!(window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+      // index.html abierto directamente (file://): usar modo offline localStorage.
+      MODO_OFFLINE = true;
+      return true;
+    }
+    const autoSocket = createSocket();
+    if(!autoSocket) return false;
+    socket = autoSocket;
+    MODO_OFFLINE = false;
+    await waitForSocketConnect(socket);
+    return true;
+  } catch (e) {
+    console.error('No se pudo conectar automáticamente al servidor:', e);
+    return false;
+  }
+}
+
 function initSocket(){
   socket = makeSocketStub();
   if (typeof io === 'undefined') {
@@ -74,9 +140,11 @@ function initSocket(){
   const savedUrl = localStorage.getItem('jjk_server_url');
   if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
     socket = createSocket();
-  } else if (savedUrl) {
-    serverBaseUrl = savedUrl;
-    socket = createSocket(savedUrl);
+  } else {
+    // En file:// debe arrancar en offline por defecto.
+    // Solo se conectará online si el usuario escribe una IP manualmente.
+    MODO_OFFLINE = true;
+    return;
   }
   if(socket){
     MODO_OFFLINE = false;
@@ -371,13 +439,14 @@ function initializeUI(){
     document.getElementById('lobby-error')?.classList.add('hidden');
   });
 
-  document.getElementById('btn-create')?.addEventListener('click',()=>{
+  document.getElementById('btn-create')?.addEventListener('click', async ()=>{
     const name=document.getElementById('input-name').value.trim();
     const serverInput=document.getElementById('input-server')?.value.trim();
     if(!name)return showToast('Ingresa tu nombre de combatiente.');
-    if(!socket || !socket.connected){
-      if(serverInput){
-        if(!connectToServer(serverInput)) return showToast('No se pudo conectar al servidor. Verifica la IP y el puerto.');
+    if(!MODO_OFFLINE && (!socket || !socket.connected)){
+      const connected = await ensureLobbyConnection(serverInput);
+      if(!connected){
+        return showToast('No se pudo conectar al servidor. Si abres esta URL desde el servidor, deja la IP vacía.', 6000);
       }
     }
     if(MODO_OFFLINE){
@@ -391,20 +460,24 @@ function initializeUI(){
       document.getElementById('room-code-display').classList.remove('hidden');
       showToast('Sala creada: '+code+' — esperando al rival...');
     } else {
-      if(!socket || !socket.connected) return showToast('No hay conexión al servidor. Escribe la IP del servidor.');
+      if(!socket || !socket.connected){
+        pendingLobbyAction = () => socket.emit('create_room',{playerName:name});
+        return showToast('Conectando al servidor...');
+      }
       socket.emit('create_room',{playerName:name});
     }
   });
 
-  document.getElementById('btn-join')?.addEventListener('click',()=>{
+  document.getElementById('btn-join')?.addEventListener('click', async ()=>{
     const name=document.getElementById('input-name').value.trim();
     const room=document.getElementById('input-room').value.trim().toUpperCase();
     const serverInput=document.getElementById('input-server')?.value.trim();
     if(!name)return showToast('Ingresa tu nombre.');
     if(!room)return showToast('Ingresa el código de sala.');
-    if(!socket || !socket.connected){
-      if(serverInput){
-        if(!connectToServer(serverInput)) return showToast('No se pudo conectar al servidor. Verifica la IP y el puerto.');
+    if(!MODO_OFFLINE && (!socket || !socket.connected)){
+      const connected = await ensureLobbyConnection(serverInput);
+      if(!connected){
+        return showToast('No se pudo conectar al servidor. Si abres esta URL desde el servidor, deja la IP vacía.', 6000);
       }
     }
     if(MODO_OFFLINE){
@@ -421,7 +494,10 @@ function initializeUI(){
       showToast('¡Unido a sala '+room+'!');
       showScreen('screen-select');renderCharacterGridOffline();
     } else {
-      if(!socket || !socket.connected) return showToast('No hay conexión al servidor. Escribe la IP del servidor.');
+      if(!socket || !socket.connected){
+        pendingLobbyAction = () => socket.emit('join_room',{roomId:room,playerName:name});
+        return showToast('Conectando al servidor...');
+      }
       socket.emit('join_room',{roomId:room,playerName:name});
     }
   });
@@ -1569,3 +1645,5 @@ document.addEventListener('click',e=>{
 // ════════════════════════════════════════════════════
 socket.on('player_disconnected',({msg})=>{showToast(`❌ ${msg}`,5000);setTimeout(()=>location.reload(),4000);});
 socket.on('connect_error',()=>showToast('❌ No se puede conectar al servidor.',5000));
+
+socket.on('connect', runPendingLobbyAction);

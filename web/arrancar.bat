@@ -132,11 +132,25 @@ echo  [3/4] Modo: Tunel internet (localtunnel)
 
 if not exist "%SCRIPT_DIR%node_modules\localtunnel\package.json" (
     echo.
-    echo  [ERROR] localtunnel no esta instalado.
-    echo  El modo tunel requiere conexion a internet y
-    echo  el paquete localtunnel preinstalado.
-    echo  Para jugar en LAN, elige la opcion 1.
-    pause & exit /b 1
+    echo  [INFO] localtunnel no encontrado. Instalando con Node portable...
+    if not exist "%NPM_CMD%" (
+        echo  [ERROR] npm portable no encontrado en "%NPM_CMD%".
+        echo          No se puede instalar localtunnel sin npm portable.
+        pause & exit /b 1
+    )
+    cd /d "%SCRIPT_DIR%"
+    call "%NPM_CMD%" install localtunnel --no-fund --no-audit
+    if errorlevel 1 (
+        echo.
+        echo  [ERROR] No se pudo instalar localtunnel sin admin.
+        echo          Revisa tu conexion a internet o usa modo LAN (opcion 1).
+        pause & exit /b 1
+    )
+    if not exist "%SCRIPT_DIR%node_modules\localtunnel\package.json" (
+        echo.
+        echo  [ERROR] La instalacion de localtunnel no se completo correctamente.
+        pause & exit /b 1
+    )
 )
 
 echo  [4/4] Arrancando servidor con tunel...

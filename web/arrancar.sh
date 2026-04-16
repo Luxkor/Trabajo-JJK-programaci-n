@@ -148,10 +148,22 @@ else
   echo " [3/4] Modo: Túnel internet (localtunnel)"
 
   if [ ! -f "$SCRIPT_DIR/node_modules/localtunnel/package.json" ]; then
-    echo " [ERROR] localtunnel no está instalado."
-    echo "         El modo túnel requiere internet y el paquete localtunnel preinstalado."
-    echo "         Para jugar en LAN, elige la opción 1."
-    exit 1
+    echo " [INFO] localtunnel no encontrado. Instalando con Node portable..."
+    if [ ! -x "$NPM_BIN" ]; then
+      echo " [ERROR] npm portable no encontrado en '$NPM_BIN'."
+      echo "         No se puede instalar localtunnel sin npm portable."
+      exit 1
+    fi
+    cd "$SCRIPT_DIR"
+    "$NPM_BIN" install localtunnel --no-fund --no-audit || {
+      echo " [ERROR] No se pudo instalar localtunnel sin admin/root."
+      echo "         Revisa tu conexión a internet o usa modo LAN (opción 1)."
+      exit 1
+    }
+    if [ ! -f "$SCRIPT_DIR/node_modules/localtunnel/package.json" ]; then
+      echo " [ERROR] La instalación de localtunnel no se completó correctamente."
+      exit 1
+    fi
   fi
 
   echo " [4/4] Arrancando servidor con túnel..."
