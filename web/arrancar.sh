@@ -116,12 +116,27 @@ if [ "$MODO" = "1" ]; then
   echo ""
   echo "  El otro jugador abre la URL 'Otro PC'."
   echo "  Ambos deben estar en la misma red WiFi/LAN."
+  echo "  Solo un PC debe ejecutar el servidor. El otro PC"
+  echo "  abre la dirección IP mostrada arriba."
   echo " -------------------------------------------------"
+  echo ""
+  echo "  Si no carga, comprueba el firewall y la red local."
   echo ""
   echo "  Ctrl+C para detener."
   echo ""
 
   cd "$SCRIPT_DIR"
+  if command -v lsof &>/dev/null; then
+    if lsof -iTCP:3000 -sTCP:LISTEN -Pn &>/dev/null; then
+      echo " [ERROR] El puerto 3000 ya está en uso. Cierra el servidor existente o usa otro puerto."
+      exit 1
+    fi
+  elif command -v ss &>/dev/null; then
+    if ss -ltnp | grep -q ':3000 '; then
+      echo " [ERROR] El puerto 3000 ya está en uso. Cierra el servidor existente o usa otro puerto."
+      exit 1
+    fi
+  fi
   "$NODE_BIN" server.js
 
 # ════════════════════════════════════════════════

@@ -100,16 +100,25 @@ echo   Otro PC    ^>  http://%LOCAL_IP%:3000
 echo.
 echo   El otro jugador abre la URL "Otro PC" en su
 echo   navegador. Ambos deben estar en la misma red.
+echo   Solo un PC debe ejecutar el servidor; el otro PC
+echo   abre la URL de "Otro PC".
 echo.
-echo   Si aparece el aviso del firewall de Windows,
-echo   haz clic en "Permitir acceso" o "Red privada".
-echo   No requiere contrasena de administrador.
+echo   Si la página no carga, comprueba el firewall,
+echo   red privada y que ambos PCs estén en la misma LAN.
 echo  -------------------------------------------------
 echo.
 echo   Ctrl+C para detener.
 echo.
 
 cd /d "%SCRIPT_DIR%"
+set PORT_IN_USE=
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":3000" ^| findstr /I "LISTENING"') do set PORT_IN_USE=%%P
+if defined PORT_IN_USE (
+    echo.
+    echo  [ERROR] El puerto 3000 ya está en uso por el proceso PID %PORT_IN_USE%.
+    echo          Cierra el servidor existente o reinicia el equipo antes de volver a ejecutar.
+    pause & exit /b 1
+)
 "%NODE_EXE%" server.js
 goto :fin
 

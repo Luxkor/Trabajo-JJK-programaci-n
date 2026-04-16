@@ -11,13 +11,71 @@
 // ═══════════════════════════════════════════════════
 //  MODO
 // ═══════════════════════════════════════════════════
-let socket;
+let socket = null;
 let MODO_OFFLINE = false;
 let eventHandlers = {};
+let pendingSocketListeners = [];
+let serverBaseUrl = null;
 
-if (typeof io !== 'undefined') {
-  socket = io({ reconnection:true, reconnectionDelay:1000, reconnectionDelayMax:5000,
-                reconnectionAttempts:5, transports:['websocket','polling'] });
+function getSocketOptions(){
+  return { reconnection:true, reconnectionDelay:1000, reconnectionDelayMax:5000,
+           reconnectionAttempts:5, transports:['websocket','polling'] };
+}
+
+function makeSocketStub(){
+  return {
+    on: (ev, fn) => { pendingSocketListeners.push({ ev, fn }); },
+    emit: ()=>{}, off:()=>{}, connected:false
+  };
+}
+
+function attachPendingListeners(sock){
+  pendingSocketListeners.forEach(({ev,fn}) => sock.on(ev, fn));
+}
+
+function createSocket(url){
+  if(typeof io === 'undefined') return null;
+  try {
+    const sock = url ? io(url, getSocketOptions()) : io(getSocketOptions());
+    attachPendingListeners(sock);
+    return sock;
+  } catch(e){
+    console.error('No se pudo crear socket:', e);
+    return null;
+  }
+}
+
+function connectToServer(url){
+  if(!url) return false;
+  serverBaseUrl = url;
+  localStorage.setItem('jjk_server_url', url);
+  const sock = createSocket(url);
+  if(!sock) return false;
+  socket = sock;
+  return true;
+}
+
+function initSocket(){
+  socket = makeSocketStub();
+  if (typeof io === 'undefined') {
+    MODO_OFFLINE = true;
+    return;
+  }
+  const savedUrl = localStorage.getItem('jjk_server_url');
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+    socket = createSocket();
+  } else if (savedUrl) {
+    serverBaseUrl = savedUrl;
+    socket = createSocket(savedUrl);
+  }
+  if(socket){
+    MODO_OFFLINE = false;
+  } else {
+    MODO_OFFLINE = true;
+  }
+}
+
+function attachDefaultConnectionHandlers(){
   socket.on('connect', () => {
     MODO_OFFLINE = false;
     showToast('Conectado al servidor de juego.', 3000);
@@ -33,13 +91,10 @@ if (typeof io !== 'undefined') {
     if (!MODO_OFFLINE) showToast('Desconectado del servidor. Comprueba la IP y el puerto.', 6000);
     console.warn('Desconectado:', reason);
   });
-} else {
-  MODO_OFFLINE = true;
-  socket = {
-    on:  (ev,fn) => { if (!eventHandlers[ev]) eventHandlers[ev]=[]; eventHandlers[ev].push(fn); },
-    emit:()=>{}, off:()=>{}, connected:false
-  };
 }
+
+initSocket();
+attachDefaultConnectionHandlers();
 
 // ── Estado global ─────────────────────────────────
 const state = {
@@ -295,6 +350,10 @@ function handlePhaseEvent(phase){
 //  INICIALIZACIÓN DOM
 // ════════════════════════════════════════════════════
 function initializeUI(){
+  const serverInput = document.getElementById('input-server');
+  const savedUrl = localStorage.getItem('jjk_server_url');
+  if(serverInput && savedUrl){ serverInput.value = savedUrl; }
+
   document.getElementById('btn-jugar')?.addEventListener('click',()=>showScreen('screen-lobby'));
   document.getElementById('btn-back-lobby')?.addEventListener('click',()=>{
     showScreen('screen-main');
@@ -304,7 +363,13 @@ function initializeUI(){
 
   document.getElementById('btn-create')?.addEventListener('click',()=>{
     const name=document.getElementById('input-name').value.trim();
+    const serverInput=document.getElementById('input-server')?.value.trim();
     if(!name)return showToast('Ingresa tu nombre de combatiente.');
+    if(!socket || !socket.connected){
+      if(serverInput){
+        if(!connectToServer(serverInput)) return showToast('No se pudo conectar al servidor. Verifica la IP y el puerto.');
+      }
+    }
     if(MODO_OFFLINE){
       const code=Math.random().toString(36).substr(2,5).toUpperCase();
       const sala={id:code,players:[{name,charIdx:null},{name:'Esperando...',charIdx:null}]};
@@ -315,14 +380,23 @@ function initializeUI(){
       document.getElementById('room-code-text').textContent=code;
       document.getElementById('room-code-display').classList.remove('hidden');
       showToast('Sala creada: '+code+' — esperando al rival...');
-    } else { socket.emit('create_room',{playerName:name}); }
+    } else {
+      if(!socket || !socket.connected) return showToast('No hay conexión al servidor. Escribe la IP del servidor.');
+      socket.emit('create_room',{playerName:name});
+    }
   });
 
   document.getElementById('btn-join')?.addEventListener('click',()=>{
     const name=document.getElementById('input-name').value.trim();
     const room=document.getElementById('input-room').value.trim().toUpperCase();
+    const serverInput=document.getElementById('input-server')?.value.trim();
     if(!name)return showToast('Ingresa tu nombre.');
     if(!room)return showToast('Ingresa el código de sala.');
+    if(!socket || !socket.connected){
+      if(serverInput){
+        if(!connectToServer(serverInput)) return showToast('No se pudo conectar al servidor. Verifica la IP y el puerto.');
+      }
+    }
     if(MODO_OFFLINE){
       const raw=localStorage.getItem('jjk_sala_'+room);
       if(!raw)return showToast('Sala no encontrada: '+room);
@@ -336,7 +410,10 @@ function initializeUI(){
       state.playerNames=[sala.players[0].name,name];
       showToast('¡Unido a sala '+room+'!');
       showScreen('screen-select');renderCharacterGridOffline();
-    } else { socket.emit('join_room',{roomId:room,playerName:name}); }
+    } else {
+      if(!socket || !socket.connected) return showToast('No hay conexión al servidor. Escribe la IP del servidor.');
+      socket.emit('join_room',{roomId:room,playerName:name});
+    }
   });
 
   document.getElementById('input-name')?.addEventListener('keydown',e=>{

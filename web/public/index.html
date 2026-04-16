@@ -53,6 +53,11 @@
     </div>
     <div class="lobby-panel">
       <div class="input-group">
+        <label>IP o URL del servidor</label>
+        <input type="text" id="input-server" placeholder="ej: 192.168.19.118:3000" autocomplete="off">
+        <div class="input-hint">Deja vacío si abres esta página desde el servidor.</div>
+      </div>
+      <div class="input-group">
         <label>Tu nombre de combatiente</label>
         <input type="text" id="input-name" placeholder="Ingresa tu nombre..." maxlength="20" autocomplete="off">
       </div>
@@ -274,7 +279,8 @@
 
 <div id="toast" class="toast hidden"></div>
 
-<script src="/socket.io/socket.io.js" onerror="console.log('Socket.io no disponible - modo offline')"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>if(typeof io==='undefined'){document.write('<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"><\/script>');}</script>
 <script src="./js/client.js"></script>
 </body>
 </html>

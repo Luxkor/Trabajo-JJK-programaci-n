@@ -6,6 +6,7 @@ const express = require('express');
 const http    = require('http');
 const { Server } = require('socket.io');
 const path    = require('path');
+const os      = require('os');
 
 const app    = express();
 const server = http.createServer(app);
@@ -851,13 +852,40 @@ function arrMatch(a,b){ if(!a||!b||a.length!==b.length) return false; return a.e
 const PORT=process.env.PORT||3000;
 const MODO_TUNEL=process.argv.includes('--tunnel');
 
+function getLocalAddresses(){
+  const interfaces = os.networkInterfaces();
+  const addresses = [];
+  for(const list of Object.values(interfaces)){
+    for(const iface of list){
+      if(iface.family==='IPv4' && !iface.internal && iface.address){
+        addresses.push(iface.address);
+      }
+    }
+  }
+  return [...new Set(addresses)];
+}
+
+server.on('error',(err)=>{
+  if(err && err.code==='EADDRINUSE'){
+    console.error('\nERROR: El puerto %s ya está en uso. Cierra el servidor existente o cambia el puerto.', PORT);
+    console.error('       Si estás usando arrancar.bat, cierra cualquier instancia anterior o reinicia el PC.');
+    process.exit(1);
+  }
+  throw err;
+});
+
 server.listen(PORT,'0.0.0.0',()=>{
   console.log(`\n╔══════════════════════════════════════════════╗`);
   console.log(`║  JJK Battle Server arrancado                 ║`);
   console.log(`║  Puerto: ${PORT}                                ║`);
-  console.log(`║  Abre http://localhost:${PORT} en tu navegador  ║`);
-  if(!MODO_TUNEL){
-  console.log(`║  Para multijugador usa tu IP local           ║`);
+  console.log(`║  Abre http://localhost:${PORT} en tu navegador ║`);
+  const localAddrs = getLocalAddresses();
+  if(localAddrs.length){
+    localAddrs.forEach((addr) => console.log(`║  Otro PC   >  http://${addr}:${PORT}`));
+    console.log(`║  Usa una de estas direcciones desde otro PC. ║`);
+  } else {
+    console.log(`║  No se detectaron IP locales automáticamente.  ║`);
+    console.log(`║  Comprueba tu red y firewall si no carga.     ║`);
   }
   console.log(`╚══════════════════════════════════════════════╝\n`);
 
