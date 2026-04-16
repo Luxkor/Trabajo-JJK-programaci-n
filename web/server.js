@@ -916,6 +916,25 @@ io.on('connection', socket => {
     }
   });
 
+  // ── WebRTC Signaling ────────────────────────────
+  // Cuando se usa conexión P2P con WebRTC, el servidor solo actúa como signaling server
+  // para intercambiar SDP (Session Description Protocol) y ICE candidates.
+
+  socket.on('webrtc:offer', (data) => {
+    const { to, from, sdp } = data;
+    io.to(to).emit('webrtc:offer', { from, sdp });
+  });
+
+  socket.on('webrtc:answer', (data) => {
+    const { to, from, sdp } = data;
+    io.to(to).emit('webrtc:answer', { from, sdp });
+  });
+
+  socket.on('webrtc:ice-candidate', (data) => {
+    const { to, candidate } = data;
+    io.to(to).emit('webrtc:ice-candidate', candidate);
+  });
+
   socket.on('disconnect', () => {
     const room = rooms[socket.roomId];
     if (room) { broadcast(room, 'player_disconnected', { msg: 'Un jugador se ha desconectado.' }); delete rooms[socket.roomId]; }

@@ -2258,6 +2258,180 @@ input[type="text"]::placeholder {
 }
 
 /* ══════════════════════════════════════════════════════
+   MODAL DE SELECCIÓN DE MODO DE CONEXIÓN
+   ══════════════════════════════════════════════════════ */
+#connection-mode-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 5, 10, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+#connection-mode-modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-glow);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 0 40px rgba(204, 34, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-content h3 {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: var(--accent-gold);
+  text-align: center;
+  text-shadow: 0 0 10px rgba(232, 184, 75, 0.5);
+}
+
+.modal-content p {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--text-dim);
+}
+
+.mode-options {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem !important;
+  background: var(--bg-card) !important;
+  border: 2px solid var(--border-glow) !important;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mode-btn:hover {
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 20px rgba(0, 136, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.mode-btn.btn-secondary:hover {
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 20px rgba(232, 184, 75, 0.3);
+}
+
+.mode-icon {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.mode-name {
+  font-family: var(--font-title);
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--accent-white);
+}
+
+.mode-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════
+   INDICADOR DE ESTADO DE CONEXIÓN
+   ══════════════════════════════════════════════════════ */
+.conn-status {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(10, 10, 18, 0.9);
+  border: 1px solid var(--border-glow);
+  border-radius: 20px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.conn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.conn-connected {
+  background: #22dd88;
+  box-shadow: 0 0 8px #22dd88;
+}
+
+.conn-disconnected {
+  background: #dd2222;
+  box-shadow: 0 0 8px #dd2222;
+}
+
+.conn-connecting {
+  background: #ddaa22;
+  animation: pulse-warn 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes pulse-warn {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.conn-text {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ══════════════════════════════════════════════════════
    BOTÓN FLOTANTE DE MÚSICA + PANEL
    ══════════════════════════════════════════════════════ */
 .btn-music-float {

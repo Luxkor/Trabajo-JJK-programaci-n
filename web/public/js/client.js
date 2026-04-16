@@ -487,11 +487,31 @@ function initializeUI() {
   // Autodetección de servidor
   autoDetectServer();
 
-  document.getElementById('btn-jugar')?.addEventListener('click', () => showScreen('screen-lobby'));
+  // ── Modal de selección de modo de conexión ──
+  let connectionMode = 'socket'; // 'socket' o 'p2p'
+
+  document.getElementById('btn-socket-mode')?.addEventListener('click', () => {
+    connectionMode = 'socket';
+    document.getElementById('connection-mode-modal').classList.add('hidden');
+    showScreen('screen-lobby');
+  });
+
+  document.getElementById('btn-p2p-mode')?.addEventListener('click', () => {
+    connectionMode = 'p2p';
+    document.getElementById('connection-mode-modal').classList.add('hidden');
+    showScreen('screen-lobby');
+  });
+
+  document.getElementById('btn-jugar')?.addEventListener('click', () => {
+    // Mostrar modal de selección de modo de conexión
+    document.getElementById('connection-mode-modal').classList.remove('hidden');
+  });
+
   document.getElementById('btn-back-lobby')?.addEventListener('click', () => {
     showScreen('screen-main');
     document.getElementById('room-code-display')?.classList.add('hidden');
     document.getElementById('lobby-error')?.classList.add('hidden');
+    connectionMode = 'socket'; // Reset a default
   });
 
   document.getElementById('btn-create')?.addEventListener('click', async () => {

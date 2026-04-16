@@ -67,13 +67,19 @@ echo      Genera una URL publica que funciona desde
 echo      cualquier red. Requiere internet y localtunnel.
 echo      No es necesario para multijugador local.
 echo.
+echo  3) Peer-to-Peer (WebRTC)
+echo      Conexion directa P2P sin servidor central.
+echo      Ambos en la misma red local o internet.
+echo      Requiere intercambiar codigos de conexion.
+echo.
 echo  -------------------------------------------------
-set /p MODO="  Opcion (1 o 2): "
+set /p MODO="  Opcion (1, 2 o 3): "
 
 if "%MODO%"=="1" goto :modo_lan
 if "%MODO%"=="2" goto :modo_tunel
+if "%MODO%"=="3" goto :modo_p2p
 
-echo  Opcion no valida. Elige 1 o 2.
+echo  Opcion no valida. Elige 1, 2 o 3.
 goto :modo_menu
 
 :: ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
@@ -96,24 +102,43 @@ for /f "tokens=2 delims=:" %%I in (
 )
 
 echo.
-echo  [3/4] Intentando configurar regla de firewall...
-echo  (Solo necesario la primera vez. Requiere red privada.)
+echo  [3/4] Intentando configurar firewall para puerto 3000...
 echo.
 
-:: Intentar añadir la regla de firewall sin admin (funciona en redes privadas)
+:: Intentar añadir la regla de firewall sin admin
 netsh advfirewall firewall show rule name="JJK Battle Server" >nul 2>&1
 if errorlevel 1 (
+    echo  Configurando firewall para redes privadas...
     netsh advfirewall firewall add rule name="JJK Battle Server" protocol=TCP dir=in localport=3000 action=allow profile=private >nul 2>&1
+    
     if errorlevel 1 (
-        echo  [AVISO] No se pudo añadir la regla de firewall automaticamente.
-        echo         Si el otro PC no puede conectarse, desactiva el firewall
-        echo         manualmente para "Red privada" o ejecuta este script
-        echo         como administrador UNA sola vez.
+        echo  [AVISO] No se pudo agregar la regla de firewall automáticamente.
+        echo.
+        echo  ┌─────────────────────────────────────────────────────────────┐
+        echo  │ SOLUCIONES:                                                 │
+        echo  │                                                             │
+        echo  │ A) Ejecuta este script como ADMINISTRADOR:                 │
+        echo  │    - Click derecho en arrancar.bat                         │
+        echo  │    - "Ejecutar como administrador"                         │
+        echo  │    - Elige opción 1 nuevamente                            │
+        echo  │                                                             │
+        echo  │ B) Desactiva el firewall temporalmente:                    │
+        echo  │    - Windows Defender Firewall^(Conf. avanzada^)          │
+        echo  │    - Desactivar para redes privadas                       │
+        echo  │    - Luego reactive después de jugar                      │
+        echo  │                                                             │
+        echo  │ C) Permite puerto 3000 manualmente:                        │
+        echo  │    - Busca "Firewall" ^(Windows Defender^)                │
+        echo  │    - "Permitir una aplicación"                            │
+        echo  │    - Agrega puerto 3000 TCP                               │
+        echo  └─────────────────────────────────────────────────────────────┘
+        echo.
+        pause
     ) else (
-        echo  [OK] Regla de firewall añadida para el puerto 3000 ^(red privada^).
+        echo  [OK] Firewall configurado para puerto 3000.
     )
 ) else (
-    echo  [OK] Regla de firewall ya existente. OK.
+    echo  [OK] Regla de firewall ya existe.
 )
 
 echo.
@@ -123,30 +148,25 @@ echo.
 echo  -------------------------------------------------
 echo   Mismo PC   ^>  http://localhost:3000
 
-:: Mostrar TODAS las IPs detectadas
-setlocal enabledelayedexpansion
-set IP_COUNT=0
-for /f "tokens=2 delims=:" %%I in (
-    'ipconfig ^| findstr /i "IPv4" ^| findstr /v "169.254"'
-) do (
-    set "IP=%%I"
-    set "IP=!IP: =!"
-    set /a IP_COUNT+=1
-    echo   Otro PC    ^>  http://!IP!:3000
-    if !IP_COUNT!==1 (
-        echo http://!IP!:3000 | clip
-        set FIRST_IP=!IP!
-    )
-)
-
-echo.
-if !IP_COUNT! GTR 0 (
-    echo   ^> La URL del primer PC ha sido copiada al portapapeles.
-    echo   ^> El otro jugador solo tiene que pegar esa URL en su navegador.
-    echo   ^> Ambos deben estar en la misma red WiFi / LAN.
+:: Obtener SOLO la primer IP
+if defined LOCAL_IP (
+    echo   Otro PC    ^>  http://%LOCAL_IP%:3000
+    echo.
+    echo   ^> La URL del otro PC ha sido copiada al portapapeles.
+    echo   ^> El otro jugador abre esa URL en su navegador.
+    echo   ^> Ambos deben estar en la misma WiFi / LAN.
+    echo.
+    echo   ^> Puerto: 3000 (firewall configurado para redes privadas)
+    echo   ^> Si el otro PC no se conecta:
+    echo   ^>   1. Verifica que estén en misma red WiFi
+    echo   ^>   2. Desactiva firewall temporalmente
+    echo   ^>   3. O ejecuta este script como admin UNA sola vez
+    echo.
+    REM Copiar URL al portapapeles
+    echo http://%LOCAL_IP%:3000 | clip
 ) else (
-    echo   [AVISO] No se detectaron IPs locales automaticamente.
-    echo           Comprueba que estas conectado a la red.
+    echo   [AVISO] No se detectó IP local.
+    echo           Comprueba que estás conectado a la red.
 )
 
 echo.
@@ -212,6 +232,70 @@ echo.
 
 cd /d "%SCRIPT_DIR%"
 "%NODE_EXE%" server.js --tunnel
+goto :fin
+
+:: ════════════════════════════════════════════════════════════════════════════════════════════════════
+::  MODO 3: PEER-TO-PEER (WebRTC)
+:: ════════════════════════════════════════════════════════════════════════════════════════════════════
+:modo_p2p
+
+echo.
+echo  [3/4] Modo: Peer-to-Peer (WebRTC)
+echo.
+echo  IMPORTANTE:
+echo  - Ambos jugadores necesitan estar en la misma red local O ambos con internet.
+echo  - En el juego, selecciona "PEER-TO-PEER" cuando se le solicite.
+echo  - El servidor actuará como intermediario SOLO para intercambiar datos de conexión.
+echo  - Luego, la conexión será directa entre los dos PCs.
+echo.
+
+set LOCAL_IPS=
+for /f "tokens=2 delims=:" %%I in (
+    'ipconfig ^| findstr /i "IPv4" ^| findstr /v "169.254"'
+) do (
+    set "RAW=%%I"
+    call set "RAW=%%RAW: =%%"
+    if not defined LOCAL_IPS (
+        set LOCAL_IPS=!RAW!
+    ) else (
+        set LOCAL_IPS=!LOCAL_IPS! / !RAW!
+    )
+    if not defined LOCAL_IP set LOCAL_IP=!RAW!
+)
+
+cd /d "%SCRIPT_DIR%"
+set PORT_IN_USE=
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":3000" ^| findstr /I "LISTENING"') do set PORT_IN_USE=%%P
+if defined PORT_IN_USE (
+    echo.
+    echo  [ERROR] El puerto 3000 ya está en uso por el proceso PID %PORT_IN_USE%.
+    echo          Cierra el servidor existente o reinicia el equipo antes de volver a ejecutar.
+    pause & exit /b 1
+)
+
+echo.
+echo  [4/4] Arrancando servidor con signaling P2P...
+echo.
+echo  -------------------------------------------------
+echo   Mismo PC   ^>  http://localhost:3000
+
+if defined LOCAL_IP (
+    echo   Otro PC    ^>  http://%LOCAL_IP%:3000
+    echo.
+    echo   ^> Ambos jugadores abren su respectiva URL.
+    echo   ^> En el juego, selecciona "PEER-TO-PEER".
+    echo   ^> La conexión será directa entre los dos PCs.
+    echo   ^> El servidor solo actúa como intermediario.
+) else (
+    echo   [AVISO] No se detectó IP local.
+    echo           Comprueba que estás conectado a la red.
+)
+
+echo.
+echo  Ctrl+C para detener.
+echo.
+
+"%NODE_EXE%" server.js
 goto :fin
 
 :fin
