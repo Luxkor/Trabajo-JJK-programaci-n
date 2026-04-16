@@ -33,6 +33,15 @@ function attachPendingListeners(sock){
   pendingSocketListeners.forEach(({ev,fn}) => sock.on(ev, fn));
 }
 
+function normalizeServerUrl(url){
+  if(!url) return '';
+  url = url.trim();
+  if(!/^https?:\/\//i.test(url)){
+    url = 'http://' + url;
+  }
+  return url.replace(/\/+$/, '');
+}
+
 function createSocket(url){
   if(typeof io === 'undefined') return null;
   try {
@@ -47,6 +56,7 @@ function createSocket(url){
 
 function connectToServer(url){
   if(!url) return false;
+  url = normalizeServerUrl(url);
   serverBaseUrl = url;
   localStorage.setItem('jjk_server_url', url);
   const sock = createSocket(url);
