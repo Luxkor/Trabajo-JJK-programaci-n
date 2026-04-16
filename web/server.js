@@ -778,9 +778,9 @@ function intentarEspada(battle, acIdx, hig) {
 //  SOCKET EVENTS
 // ════════════════════════════════════════════════════
 io.on('connection', socket => {
-  socket.on('create_room', ({ playerName }) => {
+  socket.on('create_room', ({ playerName, mode }) => {
     const id = makeRoomId();
-    rooms[id] = { id, players: [{ id: socket.id, name: playerName, charIdx: null, ready: false }], battle: null, fase: 'lobby', domainClashData: null };
+    rooms[id] = { id, players: [{ id: socket.id, name: playerName, charIdx: null, ready: false }], battle: null, fase: 'lobby', domainClashData: null, mode: mode || 'socket' };
     socket.join(id); socket.roomId = id; socket.playerIdx = 0;
     socket.emit('room_created', { roomId: id, playerIdx: 0 });
   });
@@ -790,16 +790,26 @@ io.on('connection', socket => {
     if (!room) return socket.emit('error', { msg: 'Sala no encontrada.' });
     if (room.players.length >= 2) return socket.emit('error', { msg: 'Sala llena.' });
     room.players.push({ id: socket.id, name: playerName, charIdx: null, ready: false });
+
     socket.join(roomId); socket.roomId = roomId; socket.playerIdx = 1;
     socket.emit('room_joined', { roomId, playerIdx: 1 });
     broadcast(room, 'player_joined', { players: room.players.map(p => ({ name: p.name })) });
-    room.fase = 'character_select';
-    const charData = CHARACTERS.map(c => ({
-      id: c.id, nombre: c.nombre, tipo: c.tipo, emoji: c.emoji,
-      color: c.color, gradiente: c.gradiente, hp: c.hp, energia: c.energia,
-      habilidades: c.habilidades.map(h => ({ nombre: h.nombre, desc: h.desc, danio: h.danio, coste: h.coste, dominio: !!h.dominio }))
-    }));
-    broadcast(room, 'phase_change', { fase: 'character_select', characters: charData });
+
+    // ── NOTIFICAR PREPARACIÓN P2P ──
+    const p1 = room.players[0];
+    const p2 = room.players[1];
+    io.to(p1.id).emit('p2p_ready', { remoteSocketId: p2.id });
+    io.to(p2.id).emit('p2p_ready', { remoteSocketId: p1.id });
+
+    if (room.mode === 'socket') {
+      room.fase = 'character_select';
+      const charData = CHARACTERS.map(c => ({
+        id: c.id, nombre: c.nombre, tipo: c.tipo, emoji: c.emoji,
+        color: c.color, gradiente: c.gradiente, hp: c.hp, energia: c.energia,
+        habilidades: c.habilidades.map(h => ({ nombre: h.nombre, desc: h.desc, danio: h.danio, coste: h.coste, dominio: !!h.dominio }))
+      }));
+      broadcast(room, 'phase_change', { fase: 'character_select', characters: charData });
+    }
   });
 
   socket.on('select_character', ({ charIdx }) => {
@@ -807,7 +817,7 @@ io.on('connection', socket => {
     const player = room.players[socket.playerIdx];
     player.charIdx = charIdx; player.ready = true;
     broadcast(room, 'character_selected', { playerIdx: socket.playerIdx, charIdx });
-    if (room.players.every(p => p.ready)) {
+    if (room.players.every(p => p.ready) && room.mode === 'socket') {
       const c0 = CHARACTERS[room.players[0].charIdx];
       const c1 = CHARACTERS[room.players[1].charIdx];
       room.battle = crearBatalla(c0, c1);

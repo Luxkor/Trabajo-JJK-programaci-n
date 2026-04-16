@@ -88,7 +88,7 @@ class NetworkManager {
    * Conecta a un peer remoto via P2P WebRTC
    * Requiere un socket.io para signaling
    */
-  connectViaP2P(remotePeerId, signalingSocket) {
+  connectViaP2P(remotePeerId, signalingSocket, isInitiator = true) {
     return new Promise((resolve, reject) => {
       try {
         if (!window.WebRTCPeer) {
@@ -96,7 +96,7 @@ class NetworkManager {
           return;
         }
 
-        this.peerId = `peer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        this.peerId = signalingSocket ? signalingSocket.id : `peer_${Date.now()}`;
 
         // Crear instancia WebRTC con signaling
         this.webrtcPeer = new WebRTCPeer({
@@ -154,8 +154,12 @@ class NetworkManager {
         });
 
         // Iniciar conexión (como initiator)
-        console.log('[NetworkManager] Iniciando conexión P2P hacia:', remotePeerId);
-        this.webrtcPeer.initiateConnection(remotePeerId);
+        if (isInitiator) {
+          console.log('[NetworkManager] Iniciando conexión P2P hacia:', remotePeerId);
+          this.webrtcPeer.initiateConnection(remotePeerId);
+        } else {
+          console.log('[NetworkManager] Esperando conexión P2P de:', remotePeerId);
+        }
       } catch (err) {
         reject(err);
       }

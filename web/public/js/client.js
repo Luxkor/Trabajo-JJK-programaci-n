@@ -13,6 +13,19 @@
 // ═══════════════════════════════════════════════════
 let socket = null;
 let MODO_OFFLINE = false;
+
+// ── P2P SUPPORT HELPERS ──
+function isLocalLogic() { return MODO_OFFLINE || (typeof connectionMode !== 'undefined' && connectionMode === 'p2p'); }
+function syncState(key, valueObj) {
+  const strValue = JSON.stringify(valueObj);
+  localStorage.setItem(key, strValue);
+  if (typeof connectionMode !== 'undefined' && connectionMode === 'p2p') {
+    if (networkManager && networkManager.isConnected()) {
+      networkManager.send('p2p_storage', { key, newValue: strValue });
+    }
+  }
+}
+
 let eventHandlers = {};
 let pendingSocketListeners = [];
 let serverBaseUrl = null;
@@ -294,11 +307,11 @@ function getPhase() {
 }
 function setPhase(data) {
   if (!state.roomId) return;
-  localStorage.setItem('jjk_phase_' + state.roomId, JSON.stringify({ ...data, ts: Date.now() }));
+  syncState('jjk_phase_' + state.roomId, data);
 }
 function clearPhase() {
   if (!state.roomId) return;
-  localStorage.removeItem('jjk_phase_' + state.roomId);
+  syncState('jjk_phase_' + state.roomId, null);
 }
 
 // ════════════════════════════════════════════════════
@@ -396,18 +409,31 @@ function detenerMusica() { audioPlayer.pause(); audioPlayer.src = ''; }
 // ════════════════════════════════════════════════════
 function saveBattleToStorage(gameOver = false) {
   if (!state.roomId) return;
-  localStorage.setItem('jjk_battle_' + state.roomId, JSON.stringify({
+  syncState('jjk_battle_' + state.roomId, {
     chars: state.chars, turnoActivo: state.turnoActivo, dominio: state.dominio,
     log: state.offlineLog, playerNames: state.playerNames, gameOver, ts: Date.now()
-  }));
+  });
 }
 
 window.addEventListener('storage', function (e) {
   if (!MODO_OFFLINE || !state.roomId) return;
+  handleStorageSync(e.key, e.newValue);
+});
 
+// Listener para el NetworkManager que actúe igual que el storage event
+if (typeof networkManager !== 'undefined') {
+  networkManager.on('p2p_storage', (data) => {
+    if (connectionMode === 'p2p' && state.roomId) {
+      localStorage.setItem(data.key, data.newValue);
+      handleStorageSync(data.key, data.newValue);
+    }
+  });
+}
+
+function handleStorageSync(key, newValue) {
   // Sala (join / char select)
-  if (e.key === 'jjk_sala_' + state.roomId && e.newValue) {
-    const sala = JSON.parse(e.newValue);
+  if (key === 'jjk_sala_' + state.roomId && newValue) {
+    const sala = JSON.parse(newValue);
     const scr = currentScreen();
     if (scr === 'screen-lobby') {
       if (sala.players[1]?.name && sala.players[1].name !== 'Esperando...') {
@@ -427,8 +453,8 @@ window.addEventListener('storage', function (e) {
   }
 
   // Estado de combate
-  if (e.key === 'jjk_battle_' + state.roomId && e.newValue) {
-    const data = JSON.parse(e.newValue);
+  if (key === 'jjk_battle_' + state.roomId && newValue) {
+    const data = JSON.parse(newValue);
     const scr = currentScreen();
     // Volver a batalla desde cualquier pantalla especial (clash, tribunal, select, lobby)
     if (scr === 'screen-select' || scr === 'screen-lobby' || scr === 'screen-clash' || scr === 'screen-tribunal') showScreen('screen-battle');
@@ -444,12 +470,12 @@ window.addEventListener('storage', function (e) {
   }
 
   // Fase especial
-  if (e.key === 'jjk_phase_' + state.roomId) {
-    if (!e.newValue) return;
-    const phase = JSON.parse(e.newValue);
+  if (key === 'jjk_phase_' + state.roomId) {
+    if (!newValue) return;
+    const phase = JSON.parse(newValue);
     handlePhaseEvent(phase);
   }
-});
+}
 
 function handlePhaseEvent(phase) {
   switch (phase.type) {
@@ -536,10 +562,10 @@ function initializeUI() {
       showToast('Sala creada: ' + code + ' — esperando al rival...');
     } else {
       if (!socket || !socket.connected) {
-        pendingLobbyAction = () => socket.emit('create_room', { playerName: name });
+        pendingLobbyAction = () => socket.emit('create_room', { playerName: name, mode: typeof connectionMode !== 'undefined' ? connectionMode : 'socket' });
         return showToast('Conectando al servidor...');
       }
-      socket.emit('create_room', { playerName: name });
+      socket.emit('create_room', { playerName: name, mode: typeof connectionMode !== 'undefined' ? connectionMode : 'socket' });
     }
   });
 
@@ -615,7 +641,39 @@ socket.on('room_created', ({ roomId, playerIdx }) => {
   showToast('Sala creada. Comparte el código con el rival.', 4000);
 });
 socket.on('room_joined', ({ roomId, playerIdx }) => { state.roomId = roomId; state.playerIdx = playerIdx; });
-socket.on('player_joined', ({ players }) => showToast(`¡${players[1].name} se unió! Elige tu personaje.`, 4000));
+socket.on('player_joined', ({ players }) => {
+  state.playerNames = players.map(p => p.name);
+  showToast(`¡${players[1].name} se unió! Elige tu personaje.`, 4000);
+});
+
+socket.on('p2p_ready', async ({ remoteSocketId }) => {
+  if (typeof connectionMode !== 'undefined' && connectionMode === 'p2p') {
+    showToast('Estableciendo conexión Peer-to-Peer directa...', 3000);
+    try {
+      await networkManager.connectViaP2P(remoteSocketId, socket, state.playerIdx === 0);
+
+      if (state.playerIdx === 0) {
+        // Host initializes the offline/p2p logic loop
+        const sala = {
+          id: state.roomId,
+          players: [
+            { name: state.playerNames[0] || 'Jugador 1', charIdx: null },
+            { name: state.playerNames[1] || 'Jugador 2', charIdx: null }
+          ]
+        };
+        // wait slightly to ensure connection channel is fully bound on data events before broadcasting
+        setTimeout(() => {
+          syncState('jjk_sala_' + state.roomId, sala);
+          showScreen('screen-select');
+          renderCharacterGridOffline();
+        }, 500);
+      }
+    } catch (e) {
+      showToast('Error en la conexión P2P: ' + e.message);
+    }
+  }
+});
+
 socket.on('error', ({ msg }) => {
   const el = document.getElementById('lobby-error'); el.textContent = msg; el.classList.remove('hidden');
 });
@@ -762,13 +820,15 @@ function onCharClick(c, card) {
   document.querySelectorAll('.char-card.selected-you').forEach(el => { el.classList.remove('selected-you'); el.querySelector('.card-selected-badge:not([data-rival])')?.remove(); });
   card.classList.add('selected-you');
   const b = document.createElement('div'); b.className = 'card-selected-badge'; b.textContent = 'TÚ'; b.style.color = '#e8b84b'; card.appendChild(b);
-  if (MODO_OFFLINE) {
+  if (isLocalLogic()) {
     const sala = JSON.parse(localStorage.getItem('jjk_sala_' + state.roomId) || '{}');
-    sala.players[state.playerIdx].charIdx = c.id;
-    localStorage.setItem('jjk_sala_' + state.roomId, JSON.stringify(sala));
-    const rivalReady = sala.players[1 - state.playerIdx]?.charIdx != null;
-    document.getElementById('select-status').textContent = rivalReady ? '¡Ambos listos! Iniciando...' : `Seleccionaste: ${c.nombre} — esperando al rival...`;
-    if (state.playerIdx === 0 && rivalReady) startBattleOffline(sala);
+    if (sala.players) {
+      sala.players[state.playerIdx].charIdx = c.id;
+      syncState('jjk_sala_' + state.roomId, sala);
+      const rivalReady = sala.players[1 - state.playerIdx]?.charIdx != null;
+      document.getElementById('select-status').textContent = rivalReady ? '¡Ambos listos! Iniciando...' : `Seleccionaste: ${c.nombre} — esperando al rival...`;
+      if (state.playerIdx === 0 && rivalReady) startBattleOffline(sala);
+    }
   } else {
     socket.emit('select_character', { charIdx: c.id });
     document.getElementById('select-status').textContent = `Seleccionaste: ${c.nombre} — esperando al rival...`;
@@ -1608,7 +1668,7 @@ function renderActionMenu() {
 }
 
 function sendAction(data) {
-  if (MODO_OFFLINE) { processOfflineAction(data.type, data.habIdx); return; }
+  if (isLocalLogic()) { processOfflineAction(data.type, data.habIdx); return; }
   if (!state.isMyTurn || state.actionPending) return;
   state.isMyTurn = false; state.actionPending = true;
   setActionPanelState('waiting', 'Procesando...');
@@ -1737,14 +1797,18 @@ socket.on('game_over', ({ winnerIdx, winnerChar, winnerPlayer, log }) => {
 });
 
 document.getElementById('btn-restart')?.addEventListener('click', () => {
-  if (MODO_OFFLINE && state.roomId) {
-    localStorage.removeItem('jjk_battle_' + state.roomId);
-    localStorage.removeItem('jjk_sala_' + state.roomId);
-    localStorage.removeItem('jjk_phase_' + state.roomId);
+  if (isLocalLogic() && state.roomId) {
+    syncState('jjk_battle_' + state.roomId, null);
+    syncState('jjk_sala_' + state.roomId, null);
     sessionStorage.removeItem('jjk_offline_player_idx');
     sessionStorage.removeItem('jjk_offline_room_id');
+    window.location.reload();
+    return;
   }
-  location.reload();
+  if (socket && state.roomId) {
+    socket.emit('leave_room', { roomId: state.roomId });
+    window.location.reload();
+  }
 });
 
 // ════════════════════════════════════════════════════

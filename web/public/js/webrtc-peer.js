@@ -21,15 +21,15 @@ class WebRTCPeer {
     this.peerConnection = null;
     this.dataChannel = null;
     this.socket = options.socket || null;
-    this.peerId = options.peerId || `peer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.peerId = options.peerId || (this.socket ? this.socket.id : `peer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
     this.remotePeerId = null;
 
     // Event handlers
-    this.onOpen = options.onOpen || (() => {});
-    this.onClose = options.onClose || (() => {});
-    this.onMessage = options.onMessage || (() => {});
-    this.onError = options.onError || (() => {});
-    this.onStateChange = options.onStateChange || (() => {});
+    this.onOpen = options.onOpen || (() => { });
+    this.onClose = options.onClose || (() => { });
+    this.onMessage = options.onMessage || (() => { });
+    this.onError = options.onError || (() => { });
+    this.onStateChange = options.onStateChange || (() => { });
 
     // Logging
     this.debug = options.debug !== false;
@@ -161,8 +161,8 @@ class WebRTCPeer {
       this.onStateChange(this.peerConnection.connectionState);
 
       if (this.peerConnection.connectionState === 'disconnected' ||
-          this.peerConnection.connectionState === 'failed' ||
-          this.peerConnection.connectionState === 'closed') {
+        this.peerConnection.connectionState === 'failed' ||
+        this.peerConnection.connectionState === 'closed') {
         this.onClose();
       }
     };
@@ -268,10 +268,10 @@ class WebRTCPeer {
 
   isConnected() {
     return this.peerConnection &&
-           this.dataChannel &&
-           this.dataChannel.readyState === 'open' &&
-           (this.peerConnection.connectionState === 'connected' ||
-            this.peerConnection.connectionState === 'completed');
+      this.dataChannel &&
+      this.dataChannel.readyState === 'open' &&
+      (this.peerConnection.connectionState === 'connected' ||
+        this.peerConnection.connectionState === 'completed');
   }
 
   getConnectionState() {

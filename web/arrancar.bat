@@ -117,17 +117,17 @@ if errorlevel 1 (
         echo  ┌─────────────────────────────────────────────────────────────┐
         echo  │ SOLUCIONES:                                                 │
         echo  │                                                             │
-        echo  │ A) Ejecuta este script como ADMINISTRADOR:                 │
+        echo  │ A. Ejecuta este script como ADMINISTRADOR:                 │
         echo  │    - Click derecho en arrancar.bat                         │
         echo  │    - "Ejecutar como administrador"                         │
         echo  │    - Elige opción 1 nuevamente                            │
         echo  │                                                             │
-        echo  │ B) Desactiva el firewall temporalmente:                    │
+        echo  │ B. Desactiva el firewall temporalmente:                    │
         echo  │    - Windows Defender Firewall^(Conf. avanzada^)          │
         echo  │    - Desactivar para redes privadas                       │
         echo  │    - Luego reactive después de jugar                      │
         echo  │                                                             │
-        echo  │ C) Permite puerto 3000 manualmente:                        │
+        echo  │ C. Permite puerto 3000 manualmente:                        │
         echo  │    - Busca "Firewall" ^(Windows Defender^)                │
         echo  │    - "Permitir una aplicación"                            │
         echo  │    - Agrega puerto 3000 TCP                               │
