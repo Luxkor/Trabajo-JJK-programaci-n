@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 chcp 65001 > nul
 title JJK Battle Server
 
@@ -80,32 +81,74 @@ goto :modo_menu
 :: ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 :modo_lan
 
-set LOCAL_IP=no detectada
+set LOCAL_IPS=
 for /f "tokens=2 delims=:" %%I in (
     'ipconfig ^| findstr /i "IPv4" ^| findstr /v "169.254"'
 ) do (
     set "RAW=%%I"
-    call set "LOCAL_IP=%%RAW: =%%"
-    goto :ip_found
+    call set "RAW=%%RAW: =%%"
+    if not defined LOCAL_IPS (
+        set LOCAL_IPS=!RAW!
+    ) else (
+        set LOCAL_IPS=!LOCAL_IPS! / !RAW!
+    )
+    if not defined LOCAL_IP set LOCAL_IP=!RAW!
 )
-:ip_found
 
 echo.
-echo  [3/4] Modo: Red local (LAN)
+echo  [3/4] Intentando configurar regla de firewall...
+echo  (Solo necesario la primera vez. Requiere red privada.)
+echo.
+
+:: Intentar añadir la regla de firewall sin admin (funciona en redes privadas)
+netsh advfirewall firewall show rule name="JJK Battle Server" >nul 2>&1
+if errorlevel 1 (
+    netsh advfirewall firewall add rule name="JJK Battle Server" protocol=TCP dir=in localport=3000 action=allow profile=private >nul 2>&1
+    if errorlevel 1 (
+        echo  [AVISO] No se pudo añadir la regla de firewall automaticamente.
+        echo         Si el otro PC no puede conectarse, desactiva el firewall
+        echo         manualmente para "Red privada" o ejecuta este script
+        echo         como administrador UNA sola vez.
+    ) else (
+        echo  [OK] Regla de firewall añadida para el puerto 3000 ^(red privada^).
+    )
+) else (
+    echo  [OK] Regla de firewall ya existente. OK.
+)
+
+echo.
+echo  [4/4] Modo: Red local (LAN)
 echo  [4/4] Arrancando servidor...
 echo.
 echo  -------------------------------------------------
 echo   Mismo PC   ^>  http://localhost:3000
-echo   Otro PC    ^>  http://%LOCAL_IP%:3000
+
+:: Mostrar TODAS las IPs detectadas
+setlocal enabledelayedexpansion
+set IP_COUNT=0
+for /f "tokens=2 delims=:" %%I in (
+    'ipconfig ^| findstr /i "IPv4" ^| findstr /v "169.254"'
+) do (
+    set "IP=%%I"
+    set "IP=!IP: =!"
+    set /a IP_COUNT+=1
+    echo   Otro PC    ^>  http://!IP!:3000
+    if !IP_COUNT!==1 (
+        echo http://!IP!:3000 | clip
+        set FIRST_IP=!IP!
+    )
+)
+
 echo.
-echo   El otro jugador abre la URL "Otro PC" en su
-echo   navegador. Ambos deben estar en la misma red.
-echo   Solo un PC debe ejecutar el servidor; el otro PC
-echo   abre la URL de "Otro PC".
-echo.
-echo   Si la página no carga, comprueba el firewall,
-echo   red privada y que ambos PCs estén en la misma LAN.
-echo  -------------------------------------------------
+if !IP_COUNT! GTR 0 (
+    echo   ^> La URL del primer PC ha sido copiada al portapapeles.
+    echo   ^> El otro jugador solo tiene que pegar esa URL en su navegador.
+    echo   ^> Ambos deben estar en la misma red WiFi / LAN.
+) else (
+    echo   [AVISO] No se detectaron IPs locales automaticamente.
+    echo           Comprueba que estas conectado a la red.
+)
+
 echo.
 echo   Ctrl+C para detener.
 echo.
