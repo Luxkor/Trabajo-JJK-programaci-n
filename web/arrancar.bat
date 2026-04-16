@@ -16,14 +16,8 @@ set NPM_CMD=%NODE_DIR%\npm.cmd
 set NODE_ZIP=%SCRIPT_DIR%node_tmp.zip
 set NODE_URL=https://nodejs.org/dist/%NODE_VERSION%/node-%NODE_VERSION%-win-x64.zip
 
-:: Si el usuario define PORT antes de ejecutar el script, se usa ese puerto.
-if defined PORT (
-  set "REQUESTED_PORT=%PORT%"
-) else (
-  set "REQUESTED_PORT="
-)
-
-set PORT=5000
+:: El servidor solo usará el puerto fijo 5000.
+set "PORT=5000"
 
 echo.
 echo  =================================================
@@ -108,34 +102,17 @@ echo  [2/3] Dependencias ya instaladas.
 
 :start_server
 
-:: Si el usuario pidió un puerto explícito, úsalo si está libre.
-if defined REQUESTED_PORT (
-    netstat -ano | findstr /C=":%REQUESTED_PORT% " >nul
-    if errorlevel 1 (
-        set "PORT=%REQUESTED_PORT%"
-        goto port_ready
-    )
-    if "%REQUESTED_PORT%"=="3000" goto search_ports
+:: Comprueba que el puerto fijo 5000 est?? libre.
+netstat -ano | find ":5000 " >nul
+if errorlevel 0 (
     echo.
-    echo  [ERROR] El puerto %REQUESTED_PORT% ya está en uso.
-    echo  Usa otro valor para PORT o cierra el proceso que lo ocupa.
+    echo  [ERROR] El puerto 5000 ya est?? en uso.
+    echo  Libera el puerto 5000 antes de volver a ejecutar arrancar.bat.
     pause
     exit /b 1
 )
 
-:search_ports
-:: Buscar primer puerto libre entre 3000 y 3010
-for /l %%P in (3000,1,3010) do (
-    netstat -ano | findstr /C=":%%P " >nul
-    if errorlevel 1 (
-        set PORT=%%P
-        goto port_ready
-    )
-)
-echo.
-echo  [ERROR] No se encontró un puerto libre entre 3000 y 3010.
-pause
-exit /b 1
+goto port_ready
 
 :port_ready
 
@@ -181,3 +158,4 @@ cd /d "%SCRIPT_DIR%"
 echo.
 echo  El servidor se ha detenido.
 pause
+
